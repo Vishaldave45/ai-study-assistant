@@ -1,0 +1,55 @@
+# ── Environment & Secrets ──
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ── Python (Backend) ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Alembic
+backend/alembic/versions/__pycache__/
+
+# ── Node (Frontend) ──
+node_modules/
+dist/
+build/
+.vite/
+*.local
+frontend/coverage/
+
+# ── Vector Store / Embeddings (local artifacts, not source) ──
+backend/app/rag/vectorstore/faiss_index/
+backend/app/rag/vectorstore/*.index
+backend/data/embeddings/
+
+# ── Uploaded files (local dev storage — not source) ──
+backend/storage/uploads/
+
+# ── OS / Editor ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ── Logs ──
+*.log
+logs/
+
+# ── Docker ──
+*.pid
