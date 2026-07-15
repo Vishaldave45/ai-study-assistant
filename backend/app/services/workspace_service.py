@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -14,12 +15,29 @@ from app.schemas.workspace import (
     WorkspaceUpdateRequest,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class WorkspaceService:
 
     def __init__(self, db: Session):
         self.db = db
         self.workspaces = WorkspaceRepository(db)
+
+    def _validate_owner(
+        self,
+        workspace: Workspace,
+        owner_id: UUID,
+        action: str = "access",
+    ) -> None:
+        if workspace.owner_id != owner_id:
+            logger.warning(
+                f"Unauthorized workspace {action} attempt on "
+                f"workspace {workspace.id} by user {owner_id}"
+            )
+            raise WorkspaceAccessDeniedError(
+                f"Only the owner can {action} this workspace."
+            )
 
     def create_workspace(
         self,
@@ -40,6 +58,9 @@ class WorkspaceService:
         try:
             self.db.commit()
             self.db.refresh(workspace)
+            logger.info(
+                f"Workspace Created: {workspace.id} by user {owner_id}"
+            )
         except Exception:
             self.db.rollback()
             raise
@@ -49,8 +70,27 @@ class WorkspaceService:
     def list_workspaces(
         self,
         owner_id: UUID,
-    ) -> list[Workspace]:
-        return self.workspaces.list_by_owner(owner_id)
+        page: int = 1,
+        page_size: int = 10,
+        query: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "asc",
+    ) -> tuple[list[Workspace], int, int]:
+        skip = (page - 1) * page_size
+        limit = page_size
+
+        total = self.workspaces.count(owner_id=owner_id, query=query)
+        workspaces = self.workspaces.paginate(
+            owner_id=owner_id,
+            skip=skip,
+            limit=limit,
+            query=query,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+
+        total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+        return workspaces, total, total_pages
 
     def get_workspace(
         self,
@@ -63,10 +103,7 @@ class WorkspaceService:
                 f"Workspace with ID {workspace_id} not found."
             )
 
-        if workspace.owner_id != owner_id:
-            raise WorkspaceAccessDeniedError(
-                "Access denied for this workspace."
-            )
+        self._validate_owner(workspace, owner_id, action="access")
 
         return workspace
 
@@ -82,10 +119,7 @@ class WorkspaceService:
                 f"Workspace with ID {workspace_id} not found."
             )
 
-        if workspace.owner_id != owner_id:
-            raise WorkspaceAccessDeniedError(
-                "Only the owner can update this workspace."
-            )
+        self._validate_owner(workspace, owner_id, action="update")
 
         if request.name is not None and request.name != workspace.name:
             if self.workspaces.exists_by_name(owner_id, request.name):
@@ -99,6 +133,9 @@ class WorkspaceService:
         try:
             self.db.commit()
             self.db.refresh(workspace)
+            logger.info(
+                f"Workspace Updated: {workspace.id} by user {owner_id}"
+            )
         except Exception:
             self.db.rollback()
             raise
@@ -116,15 +153,15 @@ class WorkspaceService:
                 f"Workspace with ID {workspace_id} not found."
             )
 
-        if workspace.owner_id != owner_id:
-            raise WorkspaceAccessDeniedError(
-                "Only the owner can delete this workspace."
-            )
+        self._validate_owner(workspace, owner_id, action="delete")
 
         self.workspaces.delete(workspace)
 
         try:
             self.db.commit()
+            logger.info(
+                f"Workspace Deleted: {workspace_id} by user {owner_id}"
+            )
         except Exception:
             self.db.rollback()
             raise
