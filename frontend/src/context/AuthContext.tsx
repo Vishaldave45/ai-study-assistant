@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const authenticated = !!user;
 
-  // Initialize session on load
+  // Initialize session on load and listen to unauthorized events
   useEffect(() => {
     const initializeAuth = async () => {
       const refreshToken = getRefreshToken();
@@ -54,6 +54,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initializeAuth();
+
+    // Event listener for global 401 unauth resets
+    const handleUnauthorized = () => {
+      clearTokens();
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (credentials: LoginRequest) => {
