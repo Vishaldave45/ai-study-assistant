@@ -16,6 +16,7 @@ from app.schemas.auth.login import (
     LoginRequest,
     TokenResponse,
 )
+from app.schemas.auth.refresh import RefreshTokenRequest
 
 from app.security.password_hasher import PasswordHasher
 from app.security.jwt_provider import JWTProvider
@@ -115,5 +116,85 @@ class AuthService:
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
+            token_type="Bearer",
+        )
+
+    def refresh(
+        self,
+        request: RefreshTokenRequest,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> TokenResponse:
+
+        token_hash = RefreshTokenManager.hash(
+            request.refresh_token
+        )
+
+        refresh_entity = (
+            self.refresh_tokens.get_active_by_token_hash(
+                token_hash
+            )
+        )
+
+        if refresh_entity is None:
+            raise InvalidCredentialsError(
+                "Invalid refresh token."
+            )
+
+        if refresh_entity.expires_at < datetime.now(UTC):
+            raise InvalidCredentialsError(
+                "Refresh token expired."
+            )
+
+        user = refresh_entity.user
+
+        if user.status == UserStatus.SUSPENDED:
+            raise AccountSuspendedError(
+                "Your account has been suspended."
+            )
+
+        self.refresh_tokens.revoke(
+            refresh_entity
+        )
+
+        access_token = JWTProvider.create_access_token(
+            user.id
+        )
+
+        new_refresh_token = (
+            RefreshTokenManager.generate()
+        )
+
+        new_refresh_hash = (
+            RefreshTokenManager.hash(
+                new_refresh_token
+            )
+        )
+
+        refresh = RefreshToken(
+            user_id=user.id,
+            token_hash=new_refresh_hash,
+            expires_at=datetime.now(UTC)
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+            ),
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
+        self.refresh_tokens.add(refresh)
+
+        user.last_login_at = datetime.now(UTC)
+
+        try:
+            self.db.commit()
+
+        except Exception:
+            self.db.rollback()
+            raise
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=new_refresh_token,
             token_type="Bearer",
         )
