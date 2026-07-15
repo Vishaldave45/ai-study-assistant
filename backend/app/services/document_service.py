@@ -132,6 +132,24 @@ class DocumentService:
         self._validate_workspace_owner(document.workspace_id, owner_id)
         return document
 
+    def get_document_stream(
+        self,
+        owner_id: UUID,
+        document_id: UUID,
+    ) -> BytesIO:
+        document = self.documents.get_by_id(document_id)
+        if document is None:
+            raise DocumentNotFoundError(f"Document with ID {document_id} not found.")
+
+        # Validate workspace ownership
+        self._validate_workspace_owner(document.workspace_id, owner_id)
+
+        storage_path = f"workspaces/{document.workspace_id}/{document.stored_filename}"
+        if not storage.exists(storage_path):
+            raise FileNotFoundError(f"Physical file for document {document_id} not found on disk.")
+
+        return storage.open(storage_path)
+
     def list_documents(
         self,
         owner_id: UUID,

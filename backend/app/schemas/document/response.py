@@ -16,3 +16,10 @@ class DocumentResponse(BaseSchema):
     status: DocumentStatus
     created_at: datetime
     updated_at: datetime
+
+
+class DocumentParsePreviewResponse(BaseSchema):
+    title: str | None
+    author: str | None
+    page_count: int
+    text_preview: str

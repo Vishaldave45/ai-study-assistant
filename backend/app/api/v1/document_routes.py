@@ -30,7 +30,9 @@ from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
     MessageResponse,
+    DocumentParsePreviewResponse,
 )
+from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
 from app.services.document_service import DocumentService
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -256,4 +258,78 @@ def delete_document(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
+        ) from exc
+
+
+@router.post(
+    "/{id}/parse",
+    response_model=DocumentParsePreviewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Parse document content (Preview)",
+    description="Loads the stored PDF, parses it, and returns extracted metadata and a 500 character text preview.",
+)
+def parse_document(
+    id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentParsePreviewResponse:
+    service = DocumentService(db)
+    try:
+        # Load the stored file stream (BytesIO)
+        stream = service.get_document_stream(
+            owner_id=current_user.id,
+            document_id=id,
+        )
+        
+        # Parse it
+        parsed_pdf = PDFParser.parse(stream.getvalue())
+        
+        # Build preview response (first 500 characters)
+        text_preview = parsed_pdf.text[:500]
+        
+        return DocumentParsePreviewResponse(
+            title=parsed_pdf.title,
+            author=parsed_pdf.author,
+            page_count=parsed_pdf.page_count,
+            text_preview=text_preview,
+        )
+    except DocumentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except DocumentAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except PDFPasswordProtectedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot parse password-protected PDF: {str(exc)}",
+        ) from exc
+    except (CorruptedPDFError, EmptyPDFError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid PDF file: {str(exc)}",
+        ) from exc
+    except PDFParseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to parse PDF file: {str(exc)}",
         ) from exc
