@@ -1,20 +1,5 @@
-"""
-Authentication schemas for user login.
-"""
+from pydantic import BaseModel , ConfigDict , EmailStr , Field
 
-from pydantic import EmailStr, Field
-
-from app.schemas.base import BaseSchema
-
-
-class LoginRequest(BaseSchema):
-    """
-    Request schema for login.
-    """
-
-    email: EmailStr
-
-    password: str = Field(
-        min_length=8,
-        max_length=128,
-    )
+class LoginRequest(BaseModel):
+    email:EmailStr
+    password:str
