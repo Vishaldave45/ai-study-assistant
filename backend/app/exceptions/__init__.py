@@ -11,6 +11,13 @@ from .workspace import (
     WorkspaceNotFoundError,
     WorkspaceAccessDeniedError,
 )
+from .document import (
+    DocumentError,
+    DocumentNotFoundError,
+    DocumentAccessDeniedError,
+    InvalidFileTypeError,
+    FileSizeExceededError,
+)
 
 __all__ = [
     "AuthError",
@@ -22,5 +29,10 @@ __all__ = [
     "WorkspaceAlreadyExistsError",
     "WorkspaceNotFoundError",
     "WorkspaceAccessDeniedError",
+    "DocumentError",
+    "DocumentNotFoundError",
+    "DocumentAccessDeniedError",
+    "InvalidFileTypeError",
+    "FileSizeExceededError",
 ]
 

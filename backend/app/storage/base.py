@@ -1,4 +1,8 @@
-class StorageProvider:
+from abc import ABC, abstractmethod
+from io import BytesIO
+
+
+class StorageProvider(ABC):
     """ save()
 
     delete()

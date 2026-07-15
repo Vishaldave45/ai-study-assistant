@@ -9,6 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 class Settings(BaseSettings):
     APP_NAME: str = "AI Study Assistant"
     DEBUG: bool = True
+    STORAGE_DIRECTORY: str = "storage"
+    MAX_UPLOAD_SIZE: int = 20 * 1024 * 1024
+    ALLOWED_MIME_TYPES: list[str] = [
+        "application/pdf",
+    ]
 
     DATABASE_URL: str
     JWT_SECRET_KEY: str
