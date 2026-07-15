@@ -23,3 +23,9 @@ class DocumentParsePreviewResponse(BaseSchema):
     author: str | None
     page_count: int
     text_preview: str
+
+
+class DocumentCleanPreviewResponse(BaseSchema):
+    characters: int
+    words: int
+    preview: str
