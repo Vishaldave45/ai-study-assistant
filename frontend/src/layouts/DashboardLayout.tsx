@@ -17,14 +17,12 @@ export const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
       {/* Top Navbar */}
       <header
         style={{
-          background: 'rgba(11, 15, 25, 0.7)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--glass-border)',
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
           position: 'sticky',
           top: 0,
           zIndex: 10,
@@ -39,61 +37,50 @@ export const DashboardLayout: React.FC = () => {
             justifyContent: 'space-between',
           }}
         >
-          {/* Logo */}
+          {/* Logo (Left) */}
           <Link
             to="/dashboard"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.75rem',
-              color: 'var(--color-text-primary)',
+              gap: '0.6rem',
+              color: '#3730a3', // Indigo-800 matching mockup
               fontWeight: 700,
               fontSize: '1.25rem',
               fontFamily: 'var(--font-display)',
             }}
           >
-            <div
-              className="flex-center"
-              style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
-              }}
-            >
-              <BookOpen size={20} color="#fff" />
-            </div>
+            <BookOpen size={22} strokeWidth={2.5} />
             <span>AI Study Assistant</span>
           </Link>
 
-          {/* User Section */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          {/* User Profile & Actions (Right) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ textAlign: 'right', display: 'none', md: 'block' } as any}>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', lineHeight: '1.2' }}>
                     {user.full_name}
                   </p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                  <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
                     {user.email}
                   </p>
                 </div>
 
-                {/* Avatar */}
+                {/* Avatar Icon */}
                 <div
                   className="flex-center"
                   style={{
                     width: '2.5rem',
                     height: '2.5rem',
                     borderRadius: 'var(--radius-full)',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid var(--glass-border)',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    color: 'var(--color-primary)',
-                    fontFamily: 'var(--font-display)',
+                    background: '#e0f2fe',
+                    border: '1px solid #bae6fd',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#0369a1',
+                    fontFamily: 'var(--font-mono)',
                   }}
-                  title={`${user.full_name} (${user.email})`}
                 >
                   {getInitials(user.full_name)}
                 </div>
@@ -102,20 +89,28 @@ export const DashboardLayout: React.FC = () => {
 
             <button
               onClick={() => logout()}
-              className="btn btn-secondary"
-              style={{ padding: '0.5rem 0.8rem', fontSize: '0.85rem' }}
-              title="Logout"
+              className="btn"
+              style={{
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1px solid #d1d5db',
+                padding: '0.5rem 0.85rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'none',
+              }}
             >
-              <LogOut size={16} />
-              <span>Logout</span>
+              <LogOut size={14} style={{ marginRight: '0.25rem' }} />
+              Logout
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '2.5rem 0', position: 'relative' }}>
-        <div className="container">
+      <main style={{ flex: 1, padding: '3.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="container" style={{ width: '100%' }}>
           <Outlet />
         </div>
       </main>
@@ -123,19 +118,19 @@ export const DashboardLayout: React.FC = () => {
       {/* Footer */}
       <footer
         style={{
-          borderTop: '1px solid var(--glass-border)',
           padding: '1.5rem 0',
           textAlign: 'center',
-          color: 'var(--color-text-muted)',
-          fontSize: '0.85rem',
-          background: 'rgba(3, 7, 18, 0.5)',
+          color: '#94a3b8',
+          fontSize: '0.8rem',
+          background: 'transparent',
         }}
       >
         <div className="container">
-          <p>© {new Date().getFullYear()} AI Study Assistant. All rights reserved.</p>
+          <p>AI Study Assistant — Precision Minimalism Interface</p>
         </div>
       </footer>
     </div>
   );
 };
+
 export default DashboardLayout;
