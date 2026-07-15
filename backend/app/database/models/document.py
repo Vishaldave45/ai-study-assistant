@@ -15,6 +15,7 @@ from app.database.mixins import (
 
 if TYPE_CHECKING:
     from app.database.models.workspace import Workspace
+    from app.database.models.document_chunk import DocumentChunk
 
 
 class Document(
@@ -64,6 +65,11 @@ class Document(
 
     workspace: Mapped["Workspace"] = relationship(
         back_populates="documents",
+    )
+
+    chunks: Mapped[list["DocumentChunk"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

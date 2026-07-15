@@ -31,9 +31,15 @@ from app.schemas.document import (
     DocumentResponse,
     MessageResponse,
     DocumentParsePreviewResponse,
+    DocumentCleanPreviewResponse,
+    DocumentChunkResponse,
+    DocumentChunkPreviewItem,
 )
 from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
+from app.text import TextProcessingPipeline, TextProcessingError
 from app.services.document_service import DocumentService
+from app.services.document_processing_service import DocumentProcessingService
+from app.repositories.chunk_repository import ChunkRepository
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -333,3 +339,178 @@ def parse_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to parse PDF file: {str(exc)}",
         ) from exc
+
+
+@router.post(
+    "/{id}/clean",
+    response_model=DocumentCleanPreviewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Clean and normalize document content (Preview)",
+    description="Loads the stored PDF, parses it, processes the text, and returns cleaning statistics and a 500 character text preview.",
+)
+def clean_document(
+    id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentCleanPreviewResponse:
+    service = DocumentService(db)
+    try:
+        # Load the stored file stream (BytesIO)
+        stream = service.get_document_stream(
+            owner_id=current_user.id,
+            document_id=id,
+        )
+        
+        # Parse PDF to get raw text
+        parsed_pdf = PDFParser.parse(stream.getvalue())
+        
+        # Run text processing pipeline
+        processed = TextProcessingPipeline.process(parsed_pdf.text)
+        
+        # Preview is first 500 characters
+        preview = processed.text[:500]
+        
+        return DocumentCleanPreviewResponse(
+            characters=processed.character_count,
+            words=processed.word_count,
+            preview=preview,
+        )
+    except DocumentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except DocumentAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except PDFPasswordProtectedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot parse password-protected PDF: {str(exc)}",
+        ) from exc
+    except (CorruptedPDFError, EmptyPDFError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid PDF file: {str(exc)}",
+        ) from exc
+    except PDFParseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to parse PDF file: {str(exc)}",
+        ) from exc
+    except TextProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clean text: {str(exc)}",
+        ) from exc
+
+
+@router.post(
+    "/{id}/chunk",
+    response_model=DocumentChunkResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Chunk document and persist in database",
+    description="Loads the stored PDF, parses, cleans, splits into chunks, and saves to database. Returns summary stats and preview.",
+)
+def chunk_document(
+    id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentChunkResponse:
+    # 1. Run the processing service to chunk and save to DB
+    processing_service = DocumentProcessingService(db)
+    
+    try:
+        processing_service.process_document(
+            owner_id=current_user.id,
+            document_id=id,
+        )
+    except DocumentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except DocumentAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except PDFPasswordProtectedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot parse password-protected PDF: {str(exc)}",
+        ) from exc
+    except (CorruptedPDFError, EmptyPDFError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid PDF file: {str(exc)}",
+        ) from exc
+    except PDFParseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to parse PDF: {str(exc)}",
+        ) from exc
+    except TextProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clean text: {str(exc)}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process document chunks: {str(exc)}",
+        ) from exc
+
+    # 2. Retrieve chunks from DB to build response
+    chunk_repo = ChunkRepository(db)
+    chunks = chunk_repo.list_by_document(id)
+    
+    total_chunks = len(chunks)
+    avg_tokens = int(sum(c.token_count for c in chunks) / total_chunks) if total_chunks > 0 else 0
+    
+    # Return preview list (showing first 500 characters of each chunk)
+    preview_items = [
+        DocumentChunkPreviewItem(
+            index=c.chunk_index,
+            preview=c.content[:500],
+        )
+        for c in chunks
+    ]
+    
+    return DocumentChunkResponse(
+        total_chunks=total_chunks,
+        average_tokens=avg_tokens,
+        chunks=preview_items,
+    )

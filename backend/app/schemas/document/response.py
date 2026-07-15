@@ -23,3 +23,20 @@ class DocumentParsePreviewResponse(BaseSchema):
     author: str | None
     page_count: int
     text_preview: str
+
+
+class DocumentCleanPreviewResponse(BaseSchema):
+    characters: int
+    words: int
+    preview: str
+
+
+class DocumentChunkPreviewItem(BaseSchema):
+    index: int
+    preview: str
+
+
+class DocumentChunkResponse(BaseSchema):
+    total_chunks: int
+    average_tokens: int
+    chunks: list[DocumentChunkPreviewItem]
