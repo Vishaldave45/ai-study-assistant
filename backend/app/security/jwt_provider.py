@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import jwt
@@ -9,6 +10,9 @@ from jwt import ExpiredSignatureError, InvalidTokenError as PyJWTInvalidTokenErr
 from app.core.config import settings
 from app.security.exceptions import ExpiredTokenError, InvalidTokenError
 from app.security.token_types import TokenType
+
+if TYPE_CHECKING:
+    from app.schemas.auth.token_payload import TokenPayload
 
 class JWTProvider:
     ALGORITHM = "HS256"
