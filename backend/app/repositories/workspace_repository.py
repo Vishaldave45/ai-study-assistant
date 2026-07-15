@@ -96,22 +96,37 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         workspace.deleted_at = datetime.now(UTC)
         self.flush()
 
-    def search(
+    def restore(
+        self,
+        workspace: Workspace,
+    ) -> None:
+        workspace.deleted_at = None
+        self.flush()
+
+    def exists(
+        self,
+        workspace_id: UUID,
+    ) -> bool:
+        statement = (
+            select(Workspace)
+            .where(
+                Workspace.id == workspace_id,
+                Workspace.deleted_at.is_(None),
+            )
+        )
+        return self.db.execute(statement).first() is not None
+
+    def list_deleted(
         self,
         owner_id: UUID,
-        query: str,
     ) -> list[Workspace]:
         statement = (
             select(Workspace)
             .where(
                 Workspace.owner_id == owner_id,
-                Workspace.deleted_at.is_(None),
-                (
-                    Workspace.name.ilike(f"%{query}%")
-                    | Workspace.description.ilike(f"%{query}%")
-                ),
+                Workspace.deleted_at.is_not(None),
             )
-            .order_by(Workspace.created_at.asc())
+            .order_by(Workspace.deleted_at.desc())
         )
         result = self.db.execute(statement)
         return list(result.scalars().all())
@@ -121,29 +136,51 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         owner_id: UUID,
         skip: int = 0,
         limit: int = 100,
+        query: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "asc",
+        include_deleted: bool = False,
     ) -> list[Workspace]:
-        statement = (
-            select(Workspace)
-            .where(
-                Workspace.owner_id == owner_id,
-                Workspace.deleted_at.is_(None),
+        statement = select(Workspace).where(Workspace.owner_id == owner_id)
+
+        if not include_deleted:
+            statement = statement.where(Workspace.deleted_at.is_(None))
+
+        if query:
+            statement = statement.where(
+                Workspace.name.ilike(f"%{query}%")
+                | Workspace.description.ilike(f"%{query}%")
             )
-            .order_by(Workspace.created_at.asc())
-            .offset(skip)
-            .limit(limit)
-        )
+
+        # Apply sorting dynamically
+        sort_attr = getattr(Workspace, sort_by, Workspace.created_at)
+        if sort_order.lower() == "desc":
+            statement = statement.order_by(sort_attr.desc())
+        else:
+            statement = statement.order_by(sort_attr.asc())
+
+        statement = statement.offset(skip).limit(limit)
         result = self.db.execute(statement)
         return list(result.scalars().all())
 
     def count(
         self,
         owner_id: UUID,
+        query: str | None = None,
+        include_deleted: bool = False,
     ) -> int:
         statement = (
             select(func.count(Workspace.id))
-            .where(
-                Workspace.owner_id == owner_id,
-                Workspace.deleted_at.is_(None),
-            )
+            .where(Workspace.owner_id == owner_id)
         )
+
+        if not include_deleted:
+            statement = statement.where(Workspace.deleted_at.is_(None))
+
+        if query:
+            statement = statement.where(
+                Workspace.name.ilike(f"%{query}%")
+                | Workspace.description.ilike(f"%{query}%")
+            )
+
         return self.db.execute(statement).scalar() or 0
