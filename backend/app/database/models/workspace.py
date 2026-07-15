@@ -14,6 +14,7 @@ from app.database.mixins import (
 
 if TYPE_CHECKING:
     from app.database.models.user import User
+    from app.database.models.document import Document
 
 
 class Workspace(
@@ -50,6 +51,11 @@ class Workspace(
 
     owner: Mapped["User"] = relationship(
         back_populates="workspaces",
+    )
+
+    documents: Mapped[list["Document"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
