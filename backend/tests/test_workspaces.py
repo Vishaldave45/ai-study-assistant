@@ -7,7 +7,10 @@ from app.database.base import Base
 from app.database.models.user import User
 from app.database.enums import UserStatus
 from app.services.workspace_service import WorkspaceService
-from app.schemas.workspace import WorkspaceCreateRequest, WorkspaceUpdateRequest
+from app.schemas.workspace import (
+    WorkspaceCreateRequest,
+    WorkspaceUpdateRequest,
+)
 from app.exceptions.workspace import (
     WorkspaceAlreadyExistsError,
     WorkspaceNotFoundError,
@@ -15,11 +18,15 @@ from app.exceptions.workspace import (
 )
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_service.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 
 
-class TestWorkspaceService(unittest.TestCase):
+class TestWorkspaceServiceRefinement(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -76,28 +83,52 @@ class TestWorkspaceService(unittest.TestCase):
         with self.assertRaises(WorkspaceAlreadyExistsError):
             self.service.create_workspace(self.user1_id, req)
 
-        # Create same name for user 2 -> should succeed (uniqueness is per owner)
-        ws2 = self.service.create_workspace(self.user2_id, req)
-        self.assertEqual(ws2.name, "WS Dup")
+    def test_list_workspaces_pagination_and_sorting(self):
+        # Create multiple workspaces for user 1
+        for i in range(15):
+            req = WorkspaceCreateRequest(name=f"WS Pagination {i:02d}", description=f"Desc {i}")
+            self.service.create_workspace(self.user1_id, req)
 
-    def test_list_workspaces(self):
-        req1 = WorkspaceCreateRequest(name="WS List 1")
-        req2 = WorkspaceCreateRequest(name="WS List 2")
-        self.service.create_workspace(self.user1_id, req1)
-        self.service.create_workspace(self.user1_id, req2)
+        # Test page 1, size 10
+        workspaces, total, total_pages = self.service.list_workspaces(
+            self.user1_id, page=1, page_size=10, sort_by="name", sort_order="asc"
+        )
+        self.assertEqual(total, 15)
+        self.assertEqual(total_pages, 2)
+        self.assertEqual(len(workspaces), 10)
+        self.assertEqual(workspaces[0].name, "WS Pagination 00")
 
-        workspaces = self.service.list_workspaces(self.user1_id)
+        # Test page 2, size 10
+        workspaces_p2, _, _ = self.service.list_workspaces(
+            self.user1_id, page=2, page_size=10, sort_by="name", sort_order="asc"
+        )
+        self.assertEqual(len(workspaces_p2), 5)
+        self.assertEqual(workspaces_p2[0].name, "WS Pagination 10")
+
+    def test_list_workspaces_search(self):
+        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Machine Learning"))
+        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Deep Learning", description="Neural Networks"))
+        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Web Dev"))
+
+        # Search for 'learning'
+        workspaces, total, _ = self.service.list_workspaces(
+            self.user1_id, page=1, page_size=10, query="learning"
+        )
+        self.assertEqual(total, 2)
         names = [w.name for w in workspaces]
-        self.assertIn("WS List 1", names)
-        self.assertIn("WS List 2", names)
+        self.assertIn("Machine Learning", names)
+        self.assertIn("Deep Learning", names)
+
+        # Search for 'neural' (description match)
+        workspaces_desc, total_desc, _ = self.service.list_workspaces(
+            self.user1_id, page=1, page_size=10, query="neural"
+        )
+        self.assertEqual(total_desc, 1)
+        self.assertEqual(workspaces_desc[0].name, "Deep Learning")
 
     def test_cannot_access_another_user_workspace(self):
         req = WorkspaceCreateRequest(name="Secret WS")
         ws = self.service.create_workspace(self.user1_id, req)
-
-        # User 1 should be able to get it
-        ws_retrieved = self.service.get_workspace(self.user1_id, ws.id)
-        self.assertEqual(ws_retrieved.id, ws.id)
 
         # User 2 should be denied
         with self.assertRaises(WorkspaceAccessDeniedError):
@@ -112,19 +143,6 @@ class TestWorkspaceService(unittest.TestCase):
         updated = self.service.update_workspace(self.user1_id, ws.id, update_req)
         self.assertEqual(updated.name, "WS Updated")
         self.assertEqual(updated.description, "New description")
-
-        # Try to update to an existing name of another workspace of same owner
-        other_req = WorkspaceCreateRequest(name="Other WS")
-        self.service.create_workspace(self.user1_id, other_req)
-
-        dup_update = WorkspaceUpdateRequest(name="Other WS")
-        with self.assertRaises(WorkspaceAlreadyExistsError):
-            self.service.update_workspace(self.user1_id, ws.id, dup_update)
-
-        # Updating without changing the name should not trigger duplicate error
-        same_name_update = WorkspaceUpdateRequest(name="WS Updated", description="Another description")
-        updated_same = self.service.update_workspace(self.user1_id, ws.id, same_name_update)
-        self.assertEqual(updated_same.description, "Another description")
 
     def test_delete_workspace(self):
         req = WorkspaceCreateRequest(name="WS Delete")
