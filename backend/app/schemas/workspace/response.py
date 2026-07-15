@@ -4,7 +4,13 @@ from uuid import UUID
 from app.schemas.base import BaseSchema
 
 
-class WorkspaceResponse(BaseSchema):
+class WorkspaceSummaryResponse(BaseSchema):
+    id: UUID
+    name: str
+    description: str | None
+
+
+class WorkspaceDetailResponse(BaseSchema):
     id: UUID
     name: str
     description: str | None
