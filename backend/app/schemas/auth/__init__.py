@@ -7,7 +7,7 @@ from .logout import (
     LogoutRequest,
     LogoutResponse,
 )
-
+from .token_payload import TokenPayload
 __all__ = [
     "RegisterRequest",
     "RegisterResponse",
@@ -17,4 +17,5 @@ __all__ = [
     "RefreshTokenRequest",
     "LogoutRequest",
     "LogoutResponse",
+    "TokenPayload",
 ]

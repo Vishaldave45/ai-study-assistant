@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.security.exceptions import ExpiredTokenError, InvalidTokenError
 from app.security.token_types import TokenType
 
-
+from app.schemas.auth.token_payload import TokenPayload
 class JWTProvider:
     ALGORITHM = "HS256"
 
@@ -32,11 +32,20 @@ class JWTProvider:
         return jwt.encode(payload,settings.JWT_SECRET_KEY,algorithm=cls.ALGORITHM,)
 
     @classmethod
-    def verify(cls,token: str,) -> dict:
+    def verify(
+        cls,
+        token: str,
+    ) -> TokenPayload:
 
         try:
-            return jwt.decode(token, settings.JWT_SECRET_KEY,algorithms=[cls.ALGORITHM],
+
+            payload = jwt.decode(
+                token,
+                settings.JWT_SECRET_KEY,
+                algorithms=[cls.ALGORITHM],
             )
+
+            return TokenPayload.model_validate(payload)
 
         except ExpiredSignatureError as exc:
             raise ExpiredTokenError from exc

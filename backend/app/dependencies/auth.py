@@ -10,6 +10,8 @@ from app.security.exceptions import (
     InvalidTokenError,
 )
 from app.security.jwt_provider import JWTProvider
+from app.security.token_types import TokenType
+
 
 bearer_scheme = HTTPBearer(auto_error=True)
 
@@ -37,8 +39,13 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token.",
         )
+    if payload.type != TokenType.ACCESS:
+        raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid access token.",
+    )
 
-    user_id = payload["sub"]
+    user_id = payload.sub
 
     repository = UserRepository(db)
 
