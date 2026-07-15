@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -10,7 +11,14 @@ from app.repositories.base import BaseRepository
 
 class UserRepository(BaseRepository[User]):
     def get_by_id(self,user_id: UUID,) -> User | None:
-        return super().get_by_id(User, user_id)
+        statement = (
+        select(User)
+        .where(User.id == user_id)
+    )
+
+        result = self.db.execute(statement)
+
+        return result.scalar_one_or_none()
 
     def get_by_email(self,email: str,) -> User | None:
         statement = (select(User).where(User.email == email))
