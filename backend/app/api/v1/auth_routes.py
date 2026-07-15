@@ -16,6 +16,8 @@ from app.schemas.auth import (
     RegisterResponse,
     RefreshTokenRequest,
     TokenResponse,
+    LogoutRequest,
+    LogoutResponse,
 )
 
 
@@ -27,6 +29,9 @@ from app.exceptions.auth import (
     AccountNotVerifiedError,
     AccountSuspendedError,
 )
+
+from app.dependencies.auth import get_current_user
+from app.database.models.user import User
 
 router = APIRouter(prefix="/auth",tags=["Authentication"],)
 
@@ -122,4 +127,39 @@ def refresh(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
         ) from exc
+
+
+@router.post(
+    "/logout",
+    response_model=LogoutResponse,
+)
+def logout(
+    request: LogoutRequest,
+    db: Session = Depends(get_db),
+):
+
+    service = AuthService(db)
+
+    service.logout(
+        request.refresh_token
+    )
+
+    return LogoutResponse(
+        message="Logged out successfully."
+    )
     
+    
+    
+@router.get(
+    "/me",
+)
+def me(
+    current_user: User = Depends(get_current_user),
+):
+    return {
+        "id": str(current_user.id),
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "status": current_user.status.value,
+        "verified": current_user.is_verified,
+    }

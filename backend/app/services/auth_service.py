@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.database.enums import UserStatus
@@ -94,7 +94,7 @@ class AuthService:
         refresh_entity = RefreshToken(
             user_id=user.id,
             token_hash=refresh_token_hash,
-            expires_at=datetime.now(UTC)
+            expires_at=datetime.utcnow()
             + timedelta(
                 days=settings.REFRESH_TOKEN_EXPIRE_DAYS
             ),
@@ -104,7 +104,7 @@ class AuthService:
 
         self.refresh_tokens.add(refresh_entity)
 
-        user.last_login_at = datetime.now(UTC)
+        user.last_login_at = datetime.utcnow()
 
         try:
             self.db.commit()
@@ -141,7 +141,7 @@ class AuthService:
                 "Invalid refresh token."
             )
 
-        if refresh_entity.expires_at < datetime.now(UTC):
+        if refresh_entity.expires_at < datetime.utcnow():
             raise InvalidCredentialsError(
                 "Refresh token expired."
             )
@@ -174,17 +174,16 @@ class AuthService:
         refresh = RefreshToken(
             user_id=user.id,
             token_hash=new_refresh_hash,
-            expires_at=datetime.now(UTC)
+            expires_at=datetime.utcnow()
             + timedelta(
                 days=settings.REFRESH_TOKEN_EXPIRE_DAYS
             ),
             ip_address=ip_address,
             user_agent=user_agent,
         )
-
         self.refresh_tokens.add(refresh)
 
-        user.last_login_at = datetime.now(UTC)
+        user.last_login_at = datetime.utcnow()
 
         try:
             self.db.commit()
@@ -198,3 +197,30 @@ class AuthService:
             refresh_token=new_refresh_token,
             token_type="Bearer",
         )
+
+    def logout(
+        self,
+        refresh_token: str,
+    ) -> None:
+
+        token_hash = RefreshTokenManager.hash(
+            refresh_token
+        )
+
+        token = (
+            self.refresh_tokens.get_active_by_token_hash(
+                token_hash
+            )
+        )
+
+        if token is None:
+            return
+
+        self.refresh_tokens.revoke(token)
+
+        try:
+            self.db.commit()
+
+        except Exception:
+            self.db.rollback()
+            raise
