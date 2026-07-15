@@ -2,6 +2,11 @@ from .login import LoginRequest
 from .register import RegisterRequest, RegisterResponse
 from .token import TokenResponse
 from .user import UserResponse
+from .refresh import RefreshTokenRequest
+from .logout import (
+    LogoutRequest,
+    LogoutResponse,
+)
 
 __all__ = [
     "RegisterRequest",
@@ -9,4 +14,7 @@ __all__ = [
     "LoginRequest",
     "TokenResponse",
     "UserResponse",
+    "RefreshTokenRequest",
+    "LogoutRequest",
+    "LogoutResponse",
 ]

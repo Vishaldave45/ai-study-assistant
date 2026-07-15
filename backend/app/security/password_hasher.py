@@ -1,7 +1,7 @@
 from pwdlib import PasswordHash
 
 class PasswordHasher:
-    _password_hash=PasswordHash.recommended
+    _password_hash=PasswordHash.recommended()
     
     @classmethod
     def hash(cls,password:str)->str:

@@ -1,15 +1,23 @@
-"""
-Repository responsible for User database operations.
-"""
+from __future__ import annotations
 
+from uuid import UUID
+
+from sqlalchemy import select
+
+from app.database.models.user import User
 from app.repositories.base import BaseRepository
 
 
-class UserRepository(BaseRepository):
-    """
-    Repository for user-specific queries.
+class UserRepository(BaseRepository[User]):
+    def get_by_id(self,user_id: UUID,) -> User | None:
+        return super().get_by_id(User, user_id)
 
-    Implementation will be added next.
-    """
+    def get_by_email(self,email: str,) -> User | None:
+        statement = (select(User).where(User.email == email))
 
-    pass
+        result = self.db.execute(statement)
+
+        return result.scalar_one_or_none()
+
+    def exists_by_email(self,email: str,) -> bool:
+        return self.get_by_email(email) is not None
