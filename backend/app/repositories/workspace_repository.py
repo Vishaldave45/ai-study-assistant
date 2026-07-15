@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -93,7 +93,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         self,
         workspace: Workspace,
     ) -> None:
-        workspace.deleted_at = datetime.utcnow()
+        workspace.deleted_at = datetime.now(UTC)
         self.flush()
 
     def search(
