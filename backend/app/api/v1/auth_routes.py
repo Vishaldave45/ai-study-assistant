@@ -1,3 +1,4 @@
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -42,30 +43,45 @@ def register(request: RegisterRequest,  db: Session = Depends(get_db),) -> Regis
 
 
 
-@router.post("/login", response_model=TokenResponse, status_code= status.HTTP_200_OK)
-def login(Request:LoginRequest , http_request: Request, db: Session=Depends(get_db) , )->TokenResponse:
-    service=AuthService(db)
-    
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+)
+def login(
+    request: LoginRequest,
+    http_request: Request,
+    db: Session = Depends(get_db),
+) -> TokenResponse:
+    print("=" * 50)
+    print(request)
+    print(type(request))
+    service = AuthService(db)
 
     try:
-        
         return service.login(
-                request=LoginRequest,
-                ip_address=http_request.client.host
-                if http_request.client
-                else None,
-                user_agent=http_request.headers.get(
-                    "User-Agent"
-                ),
+            request=request,
+            ip_address=http_request.client.host
+            if http_request.client
+            else None,
+            user_agent=http_request.headers.get("User-Agent"),
         )
 
-    except InvalidCredentialsError as EXC:
-        raise HTTPException( status_code = status.HTTP_401_UNAUTHORIZED, detail=str(EXC),) from exc
+    except InvalidCredentialsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
 
     except AccountNotVerifiedError as exc:
-        raise HTTPException( status_code=status.HTTP_403_FORBIDDEN, detail=str(exc),) from exc
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
 
     except AccountSuspendedError as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc), ) from exc
-    
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
     

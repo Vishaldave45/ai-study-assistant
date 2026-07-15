@@ -1,8 +1,10 @@
+from datetime import UTC, datetime, timedelta
 from sqlalchemy.orm import Session
-
+from app.core.config import settings
 from app.database.enums import UserStatus
 from app.database.models.user import User
 from app.database.models.workspace import Workspace
+from app.database.models.refresh_token import RefreshToken
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -10,9 +12,21 @@ from app.schemas.auth.register import (
     RegisterRequest,
     RegisterResponse,
 )
-from app.security.password_hasher import PasswordHasher
+from app.schemas.auth.login import (
+    LoginRequest,
+    TokenResponse,
+)
 
-from app.exceptions.auth import EmailAlreadyExistsError
+from app.security.password_hasher import PasswordHasher
+from app.security.jwt_provider import JWTProvider
+from app.security.refresh_token_manager import RefreshTokenManager
+
+from app.exceptions.auth import (
+    AccountNotVerifiedError,
+    AccountSuspendedError,
+    EmailAlreadyExistsError,
+    InvalidCredentialsError,
+)
 
 class AuthService:
     
@@ -51,4 +65,55 @@ class AuthService:
 
         return RegisterResponse(
             message="Registration successful. Please verify your email."
+        )
+        
+        
+    def login(self,request: LoginRequest, ip_address: str | None = None, user_agent: str | None = None,) -> TokenResponse:
+        
+        user = self.users.get_by_email(request.email)
+
+        if user is None:
+            raise InvalidCredentialsError("Invalid email or password." )
+
+        if not PasswordHasher.verify(request.password, user.password_hash,):
+            raise InvalidCredentialsError("Invalid email or password.")
+        
+        """if not user.is_verified:
+            raise AccountNotVerifiedError("Please verify your email first.")"""
+
+        if user.status == UserStatus.SUSPENDED:
+            raise AccountSuspendedError("Your account has been suspended.")
+
+        access_token = JWTProvider.create_access_token(user.id,)
+
+        refresh_token = RefreshTokenManager.generate()
+
+        refresh_token_hash = RefreshTokenManager.hash(refresh_token,)
+
+        refresh_entity = RefreshToken(
+            user_id=user.id,
+            token_hash=refresh_token_hash,
+            expires_at=datetime.now(UTC)
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+            ),
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
+        self.refresh_tokens.add(refresh_entity)
+
+        user.last_login_at = datetime.now(UTC)
+
+        try:
+            self.db.commit()
+
+        except Exception:
+            self.db.rollback()
+            raise
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="Bearer",
         )
