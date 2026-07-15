@@ -12,11 +12,7 @@ from app.schemas.auth.register import (
 )
 from app.security.password_hasher import PasswordHasher
 
-
-class EmailAlreadyExistsError(Exception):
-    pass
-
-
+from app.exceptions.auth import EmailAlreadyExistsError
 
 class AuthService:
     
@@ -38,14 +34,12 @@ class AuthService:
 
         user = User(email=request.email, full_name=request.full_name, password_hash=password_hash, status=UserStatus.PENDING_VERIFICATION, is_verified=False,)
 
-        workspace = Workspace( owner_id=user.id, name="My Workspace",)
+        workspace = Workspace( owner=user, name="My Workspace",)
 
         try:
             self.users.add(user)
 
             self.workspaces.add(workspace)
-
-            self.db.flush()
 
             self.db.commit()
 
