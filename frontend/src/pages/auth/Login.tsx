@@ -1,45 +1,64 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './Login.module.css';
 
-const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Simple state variables for form inputs
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // States for handling load states and validation/API errors
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  // Manual validation checks
+  const validateForm = () => {
+    let isValid = true;
+    setEmailError('');
+    setPasswordError('');
 
-  const onSubmit = async (data: LoginFormValues) => {
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!email.includes('@')) {
+      setEmailError('Please enter a valid email address');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters long');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setApiError(null);
+
+    // Run validations
+    if (!validateForm()) {
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await login(data);
+      // Call the simple login context action
+      await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('Login error details:', err);
       if (err.response && err.response.data && err.response.data.detail) {
         setApiError(err.response.data.detail);
       } else {
@@ -62,7 +81,7 @@ export const Login: React.FC = () => {
         </div>
       )}
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {/* Email Field */}
         <div className="form-group">
           <label htmlFor="email" className="form-label">
@@ -73,12 +92,13 @@ export const Login: React.FC = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              className={`form-input ${styles.inputWithIcon} ${errors.email ? 'error' : ''}`}
-              {...register('email')}
+              className={`form-input ${styles.inputWithIcon} ${emailError ? 'error' : ''}`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <Mail className={styles.inputIcon} size={18} />
           </div>
-          {errors.email && <span className="form-error">{errors.email.message}</span>}
+          {emailError && <span className="form-error">{emailError}</span>}
         </div>
 
         {/* Password Field */}
@@ -91,12 +111,13 @@ export const Login: React.FC = () => {
               id="password"
               type="password"
               placeholder="••••••••"
-              className={`form-input ${styles.inputWithIcon} ${errors.password ? 'error' : ''}`}
-              {...register('password')}
+              className={`form-input ${styles.inputWithIcon} ${passwordError ? 'error' : ''}`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <Lock className={styles.inputIcon} size={18} />
           </div>
-          {errors.password && <span className="form-error">{errors.password.message}</span>}
+          {passwordError && <span className="form-error">{passwordError}</span>}
         </div>
 
         {/* Actions Row */}
@@ -110,7 +131,7 @@ export const Login: React.FC = () => {
             className={styles.forgotPassword}
             onClick={(e) => {
               e.preventDefault();
-              alert('Password reset function is not implemented in this demo backend.');
+              alert('Password reset is not configured.');
             }}
           >
             Forgot Password?

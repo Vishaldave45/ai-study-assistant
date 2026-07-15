@@ -65,7 +65,7 @@ export const AuthLayout: React.FC = () => {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>
             <span style={{ background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Antigravity
+              AI Study Assistant
             </span>
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>

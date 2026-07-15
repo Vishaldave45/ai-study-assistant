@@ -63,7 +63,7 @@ export const DashboardLayout: React.FC = () => {
             >
               <BookOpen size={20} color="#fff" />
             </div>
-            <span>Antigravity</span>
+            <span>AI Study Assistant</span>
           </Link>
 
           {/* User Section */}
@@ -132,7 +132,7 @@ export const DashboardLayout: React.FC = () => {
         }}
       >
         <div className="container">
-          <p>© {new Date().getFullYear()} Antigravity. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AI Study Assistant. All rights reserved.</p>
         </div>
       </footer>
     </div>

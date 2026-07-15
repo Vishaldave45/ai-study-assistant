@@ -1,60 +1,87 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './Register.module.css';
 
-const registerSchema = z
-  .object({
-    fullName: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().min(1, 'Email is required').email('Invalid email address'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
-    confirmPassword: z.string().min(1, 'Confirm Password is required'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
-
 export const Register: React.FC = () => {
   const { register: authRegister } = useAuth();
   const navigate = useNavigate();
+
+  // Simple state variables for form inputs
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // States for errors and statuses
+  const [fullNameError, setFullNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    },
-  });
+  // Manual validation logic
+  const validateForm = () => {
+    let isValid = true;
+    setFullNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
 
-  const onSubmit = async (data: RegisterFormValues) => {
+    if (!fullName) {
+      setFullNameError('Name is required');
+      isValid = false;
+    } else if (fullName.length < 2) {
+      setFullNameError('Name must be at least 2 characters long');
+      isValid = false;
+    }
+
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!email.includes('@')) {
+      setEmailError('Please enter a valid email address');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters long');
+      isValid = false;
+    }
+
+    if (!confirmPassword) {
+      setConfirmPasswordError('Confirm password is required');
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setApiError(null);
+
+    // Validate inputs
+    if (!validateForm()) {
+      return;
+    }
+
     setSubmitting(true);
     try {
+      // Call the register context action
       await authRegister({
-        email: data.email,
-        full_name: data.fullName,
-        password: data.password,
+        email,
+        full_name: fullName,
+        password,
       });
       setSuccess(true);
       // Wait a moment and navigate to login
@@ -62,7 +89,7 @@ export const Register: React.FC = () => {
         navigate('/login');
       }, 3000);
     } catch (err: any) {
-      console.error('Registration error:', err);
+      console.error('Registration error details:', err);
       if (err.response && err.response.data && err.response.data.detail) {
         setApiError(err.response.data.detail);
       } else {
@@ -104,7 +131,7 @@ export const Register: React.FC = () => {
         </div>
       )}
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {/* Full Name Field */}
         <div className="form-group">
           <label htmlFor="fullName" className="form-label">
@@ -115,12 +142,13 @@ export const Register: React.FC = () => {
               id="fullName"
               type="text"
               placeholder="John Doe"
-              className={`form-input ${styles.inputWithIcon} ${errors.fullName ? 'error' : ''}`}
-              {...register('fullName')}
+              className={`form-input ${styles.inputWithIcon} ${fullNameError ? 'error' : ''}`}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
             />
             <User className={styles.inputIcon} size={18} />
           </div>
-          {errors.fullName && <span className="form-error">{errors.fullName.message}</span>}
+          {fullNameError && <span className="form-error">{fullNameError}</span>}
         </div>
 
         {/* Email Field */}
@@ -133,12 +161,13 @@ export const Register: React.FC = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              className={`form-input ${styles.inputWithIcon} ${errors.email ? 'error' : ''}`}
-              {...register('email')}
+              className={`form-input ${styles.inputWithIcon} ${emailError ? 'error' : ''}`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <Mail className={styles.inputIcon} size={18} />
           </div>
-          {errors.email && <span className="form-error">{errors.email.message}</span>}
+          {emailError && <span className="form-error">{emailError}</span>}
         </div>
 
         {/* Password Field */}
@@ -151,12 +180,13 @@ export const Register: React.FC = () => {
               id="password"
               type="password"
               placeholder="••••••••"
-              className={`form-input ${styles.inputWithIcon} ${errors.password ? 'error' : ''}`}
-              {...register('password')}
+              className={`form-input ${styles.inputWithIcon} ${passwordError ? 'error' : ''}`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <Lock className={styles.inputIcon} size={18} />
           </div>
-          {errors.password && <span className="form-error">{errors.password.message}</span>}
+          {passwordError && <span className="form-error">{passwordError}</span>}
         </div>
 
         {/* Confirm Password Field */}
@@ -169,14 +199,13 @@ export const Register: React.FC = () => {
               id="confirmPassword"
               type="password"
               placeholder="••••••••"
-              className={`form-input ${styles.inputWithIcon} ${errors.confirmPassword ? 'error' : ''}`}
-              {...register('confirmPassword')}
+              className={`form-input ${styles.inputWithIcon} ${confirmPasswordError ? 'error' : ''}`}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <Lock className={styles.inputIcon} size={18} />
           </div>
-          {errors.confirmPassword && (
-            <span className="form-error">{errors.confirmPassword.message}</span>
-          )}
+          {confirmPasswordError && <span className="form-error">{confirmPasswordError}</span>}
         </div>
 
         {/* Submit Button */}
