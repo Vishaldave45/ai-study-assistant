@@ -38,6 +38,7 @@ from app.schemas.document import (
 )
 from app.vectorstore.schemas import IndexResult
 from app.retrieval.schemas import SearchRequest, SearchResponse
+from app.prompts.schemas import PromptRequest, PromptResponse
 from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
 from app.text import TextProcessingPipeline, TextProcessingError
 from app.services.document_service import DocumentService
@@ -686,5 +687,93 @@ def search_documents(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during search: {str(exc)}",
         ) from exc
+
+
+@router.post(
+    "/prompt",
+    response_model=PromptResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Construct a RAG prompt for a natural language query",
+    description="Retrieves matching chunks and builds a structured LLM prompt.",
+)
+def construct_prompt(
+    request: PromptRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PromptResponse:
+    from sqlalchemy import select
+    from app.repositories.workspace_repository import WorkspaceRepository
+    from app.database.models.document import Document
+    from app.retrieval.service import RetrievalService
+    from app.prompts.builder import PromptBuilder
+    from app.prompts.exceptions import PromptBuilderError, PromptTooLargeError
+
+    # Validate Workspace existence and ownership
+    workspaces = WorkspaceRepository(db)
+    workspace = workspaces.get_by_id(request.workspace_id)
+    if workspace is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Workspace with ID {request.workspace_id} not found.",
+        )
+    if workspace.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the owner can access this workspace.",
+        )
+
+    # 1. Retrieve chunks
+    retrieval_service = RetrievalService(db)
+    try:
+        search_response = retrieval_service.search(
+            workspace_id=request.workspace_id,
+            query=request.query,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Retrieval failed during prompt construction: {str(exc)}",
+        ) from exc
+
+    # 2. Look up document filenames from database
+    if search_response.results:
+        doc_ids = {res.document_id for res in search_response.results}
+        stmt = select(Document).where(Document.id.in_(doc_ids))
+        docs = db.execute(stmt).scalars().all()
+        doc_map = {doc.id: doc.original_filename for doc in docs}
+    else:
+        doc_map = {}
+
+    # 3. Format chunks for the builder
+    chunks_for_builder = []
+    for res in search_response.results:
+        filename = doc_map.get(res.document_id, "Unknown Document")
+        chunks_for_builder.append({
+            "content": res.content,
+            "filename": filename,
+            "page": "N/A"
+        })
+
+    # 4. Build the prompt
+    builder = PromptBuilder()
+    try:
+        prompt_string = builder.build(request.query, chunks_for_builder)
+        return PromptResponse(prompt=prompt_string)
+    except PromptTooLargeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=str(exc),
+        ) from exc
+    except PromptBuilderError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to build prompt: {str(exc)}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(exc)}",
+        ) from exc
+
 
 
