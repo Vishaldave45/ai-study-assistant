@@ -36,6 +36,7 @@ from app.schemas.document import (
     DocumentChunkPreviewItem,
     DocumentEmbedResponse,
 )
+from app.vectorstore.schemas import IndexResult
 from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
 from app.text import TextProcessingPipeline, TextProcessingError
 from app.services.document_service import DocumentService
@@ -557,3 +558,82 @@ def embed_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Embedding pipeline failed: {str(exc)}",
         ) from exc
+
+
+@router.post(
+    "/{id}/index",
+    response_model=IndexResult,
+    status_code=status.HTTP_200_OK,
+    summary="Index document chunks and persist in FAISS",
+    description="Parses, chunks, embeds, and indexes the document into the workspace FAISS vector store.",
+)
+def index_document(
+    id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> IndexResult:
+    from app.vectorstore.service import VectorStoreService
+    from app.vectorstore.exceptions import VectorStoreError
+    from app.exceptions.workspace import WorkspaceNotFoundError, WorkspaceAccessDeniedError
+    from app.exceptions.document import DocumentNotFoundError, DocumentAccessDeniedError
+    from app.pdf import PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError, PDFParseError
+    from app.text import TextProcessingError
+
+    service = VectorStoreService(db)
+    try:
+        stats = service.index_document(
+            owner_id=current_user.id,
+            document_id=id,
+        )
+        return IndexResult(**stats)
+    except DocumentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except DocumentAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except WorkspaceAccessDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except PDFPasswordProtectedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot parse password-protected PDF: {str(exc)}",
+        ) from exc
+    except (CorruptedPDFError, EmptyPDFError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid PDF file: {str(exc)}",
+        ) from exc
+    except PDFParseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to parse PDF: {str(exc)}",
+        ) from exc
+    except TextProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clean text: {str(exc)}",
+        ) from exc
+    except VectorStoreError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Vector store indexing failed: {str(exc)}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred during indexing: {str(exc)}",
+        ) from exc
+

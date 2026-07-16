@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "alembic>=1.11.0",
     "email-validator>=2.0.0",
+    "faiss-cpu>=1.14.3",
     "fastapi>=0.100.0",
     "langchain-text-splitters>=1.1.2",
     "passlib[bcrypt]>=1.7.4",
