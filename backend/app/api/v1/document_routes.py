@@ -39,7 +39,13 @@ from app.schemas.document import (
 from app.vectorstore.schemas import IndexResult
 from app.retrieval.schemas import SearchRequest, SearchResponse
 from app.prompts.schemas import PromptRequest, PromptResponse
-from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
+from app.pdf import (
+    PDFParser,
+    PDFParseError,
+    PDFPasswordProtectedError,
+    CorruptedPDFError,
+    EmptyPDFError,
+)
 from app.text import TextProcessingPipeline, TextProcessingError
 from app.services.document_service import DocumentService
 from app.services.document_processing_service import DocumentProcessingService
@@ -56,7 +62,9 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
     description="Upload a PDF document (max 20MB) to a specified workspace.",
 )
 def upload_document(
-    workspace_id: UUID = Form(..., description="The workspace ID to upload the document to"),
+    workspace_id: UUID = Form(
+        ..., description="The workspace ID to upload the document to"
+    ),
     file: UploadFile = File(..., description="The PDF file to upload"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -107,7 +115,9 @@ def list_documents(
     workspace_id: UUID = Query(..., description="Filter documents by workspace ID"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page"),
-    query: str | None = Query(None, description="Search query matching original filename"),
+    query: str | None = Query(
+        None, description="Search query matching original filename"
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> DocumentListResponse:
@@ -290,13 +300,13 @@ def parse_document(
             owner_id=current_user.id,
             document_id=id,
         )
-        
+
         # Parse it
         parsed_pdf = PDFParser.parse(stream.getvalue())
-        
+
         # Build preview response (first 500 characters)
         text_preview = parsed_pdf.text[:500]
-        
+
         return DocumentParsePreviewResponse(
             title=parsed_pdf.title,
             author=parsed_pdf.author,
@@ -364,16 +374,16 @@ def clean_document(
             owner_id=current_user.id,
             document_id=id,
         )
-        
+
         # Parse PDF to get raw text
         parsed_pdf = PDFParser.parse(stream.getvalue())
-        
+
         # Run text processing pipeline
         processed = TextProcessingPipeline.process(parsed_pdf.text)
-        
+
         # Preview is first 500 characters
         preview = processed.text[:500]
-        
+
         return DocumentCleanPreviewResponse(
             characters=processed.character_count,
             words=processed.word_count,
@@ -440,7 +450,7 @@ def chunk_document(
 ) -> DocumentChunkResponse:
     # 1. Run the processing service to chunk and save to DB
     processing_service = DocumentProcessingService(db)
-    
+
     try:
         processing_service.process_document(
             owner_id=current_user.id,
@@ -500,10 +510,14 @@ def chunk_document(
     # 2. Retrieve chunks from DB to build response
     chunk_repo = ChunkRepository(db)
     chunks = chunk_repo.list_by_document(id)
-    
+
     total_chunks = len(chunks)
-    avg_tokens = int(sum(c.token_count for c in chunks) / total_chunks) if total_chunks > 0 else 0
-    
+    avg_tokens = (
+        int(sum(c.token_count for c in chunks) / total_chunks)
+        if total_chunks > 0
+        else 0
+    )
+
     # Return preview list (showing first 500 characters of each chunk)
     preview_items = [
         DocumentChunkPreviewItem(
@@ -512,7 +526,7 @@ def chunk_document(
         )
         for c in chunks
     ]
-    
+
     return DocumentChunkResponse(
         total_chunks=total_chunks,
         average_tokens=avg_tokens,
@@ -533,18 +547,19 @@ def embed_document(
     db: Session = Depends(get_db),
 ) -> DocumentEmbedResponse:
     from app.embedding.pipeline import EmbeddingPipeline
+
     pipeline = EmbeddingPipeline(db)
-    
+
     try:
         results = pipeline.run_pipeline(
             owner_id=current_user.id,
             document_id=id,
         )
-        
+
         # BAAI/bge-small-en-v1.5 details
         model_name = "BAAI/bge-small-en-v1.5"
         dimension = 384
-        
+
         return DocumentEmbedResponse(
             chunks=len(results),
             dimension=dimension,
@@ -576,9 +591,17 @@ def index_document(
 ) -> IndexResult:
     from app.vectorstore.service import VectorStoreService
     from app.vectorstore.exceptions import VectorStoreError
-    from app.exceptions.workspace import WorkspaceNotFoundError, WorkspaceAccessDeniedError
+    from app.exceptions.workspace import (
+        WorkspaceNotFoundError,
+        WorkspaceAccessDeniedError,
+    )
     from app.exceptions.document import DocumentNotFoundError, DocumentAccessDeniedError
-    from app.pdf import PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError, PDFParseError
+    from app.pdf import (
+        PDFPasswordProtectedError,
+        CorruptedPDFError,
+        EmptyPDFError,
+        PDFParseError,
+    )
     from app.text import TextProcessingError
 
     service = VectorStoreService(db)
@@ -748,11 +771,9 @@ def construct_prompt(
     chunks_for_builder = []
     for res in search_response.results:
         filename = doc_map.get(res.document_id, "Unknown Document")
-        chunks_for_builder.append({
-            "content": res.content,
-            "filename": filename,
-            "page": "N/A"
-        })
+        chunks_for_builder.append(
+            {"content": res.content, "filename": filename, "page": "N/A"}
+        )
 
     # 4. Build the prompt
     builder = PromptBuilder()
@@ -774,6 +795,3 @@ def construct_prompt(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(exc)}",
         ) from exc
-
-
-

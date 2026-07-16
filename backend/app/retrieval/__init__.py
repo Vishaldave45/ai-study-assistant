@@ -1,5 +1,9 @@
 from app.retrieval.config import MAX_CONTEXT_CHUNKS, MIN_SCORE, TOP_K
-from app.retrieval.exceptions import QueryEmbeddingError, RetrievalError, RetrieverConfigError
+from app.retrieval.exceptions import (
+    QueryEmbeddingError,
+    RetrievalError,
+    RetrieverConfigError,
+)
 from app.retrieval.pipeline import RetrievalPipeline
 from app.retrieval.provider import RetrieverProvider
 from app.retrieval.retriever import FAISSRetriever

@@ -20,10 +20,7 @@ class TestPrompts(unittest.TestCase):
             page="3",
         )
         expected = (
-            "Document: test_file.pdf\n"
-            "Page: 3\n"
-            "Chunk:\n"
-            "This is some content.\n"
+            "Document: test_file.pdf\n" "Page: 3\n" "Chunk:\n" "This is some content.\n"
         )
         self.assertEqual(formatted, expected)
 
@@ -60,25 +57,29 @@ class TestPrompts(unittest.TestCase):
 
     def test_context_trimming(self):
         # Create chunks that are large enough to exceed our small budget (500 tokens)
-        large_chunk_content = "This is a sentence that we will repeat to make it very large. " * 30
+        large_chunk_content = (
+            "This is a sentence that we will repeat to make it very large. " * 30
+        )
         chunks = [
             {"content": large_chunk_content, "filename": "large_doc.pdf", "page": "1"},
-            {"content": "Small chunk content that shouldn't be included if we already exceeded budget.", "filename": "doc2.pdf", "page": "2"},
+            {
+                "content": "Small chunk content that shouldn't be included if we already exceeded budget.",
+                "filename": "doc2.pdf",
+                "page": "2",
+            },
         ]
 
         # TokenBudgetManager will accept the first chunk but reject the second because it overflows 500 tokens
         prompt = self.builder_small.build("Explain AI.", chunks)
-        
+
         self.assertIn("large_doc.pdf", prompt)
         self.assertNotIn("doc2.pdf", prompt)
 
     def test_query_too_large_error(self):
         # A query that is excessively large and immediately exceeds the budget
         huge_query = "What is " + ("AI " * 500)
-        chunks = [
-            {"content": "Some content", "filename": "doc1.pdf", "page": "1"}
-        ]
-        
+        chunks = [{"content": "Some content", "filename": "doc1.pdf", "page": "1"}]
+
         with self.assertRaises(PromptTooLargeError):
             self.builder_small.build(huge_query, chunks)
 

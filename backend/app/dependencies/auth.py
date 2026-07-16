@@ -12,14 +12,11 @@ from app.security.exceptions import (
 from app.security.jwt_provider import JWTProvider
 from app.security.token_types import TokenType
 
-
 bearer_scheme = HTTPBearer(auto_error=True)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(
-        bearer_scheme
-    ),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
 
@@ -41,9 +38,9 @@ def get_current_user(
         )
     if payload.type != TokenType.ACCESS:
         raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid access token.",
-    )
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid access token.",
+        )
 
     user_id = payload.sub
 

@@ -10,8 +10,7 @@ SUMMARY_PROMPT = (
 )
 
 QUIZ_PROMPT = (
-    "You are an AI Study Assistant.\n"
-    "Generate a quiz based on the following text."
+    "You are an AI Study Assistant.\n" "Generate a quiz based on the following text."
 )
 
 FLASHCARD_PROMPT = (

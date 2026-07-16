@@ -21,9 +21,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_retrieval_db.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestRetrieval(unittest.TestCase):
@@ -41,7 +39,9 @@ class TestRetrieval(unittest.TestCase):
 
         # Temporary vector storage path
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.patcher1 = patch("app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name)
+        self.patcher1 = patch(
+            "app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name
+        )
         self.patcher1.start()
 
         # Mock EmbeddingService to avoid loading SentenceTransformer

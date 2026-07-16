@@ -38,13 +38,17 @@ class VectorStoreService:
         # Retrieve chunks
         chunks = self.chunk_repo.list_by_document(document_id)
         if not chunks:
-            raise VectorStoreError(f"No chunks were generated for document {document_id}")
+            raise VectorStoreError(
+                f"No chunks were generated for document {document_id}"
+            )
 
         # 2. Generate embeddings
         embedding_pipeline = EmbeddingPipeline(self.db)
         embedding_results = embedding_pipeline.run_pipeline(owner_id, document_id)
         if not embedding_results:
-            raise VectorStoreError(f"No embeddings were generated for document {document_id}")
+            raise VectorStoreError(
+                f"No embeddings were generated for document {document_id}"
+            )
 
         # 3. Save to FAISS vector store
         # Delete old vectors first for clean re-indexing
@@ -56,10 +60,12 @@ class VectorStoreService:
         # Match chunks to their metadata in order
         metadata = []
         for chunk in chunks:
-            metadata.append({
-                "chunk_id": chunk.id,
-                "document_id": document_id,
-            })
+            metadata.append(
+                {
+                    "chunk_id": chunk.id,
+                    "document_id": document_id,
+                }
+            )
 
         # Add vectors
         self.vector_repo.add_vectors(workspace_id, vectors, metadata)
@@ -68,7 +74,7 @@ class VectorStoreService:
         return {
             "chunks": chunks_count,
             "vectors": len(vectors),
-            "dimension": len(vectors[0]) if vectors else 384
+            "dimension": len(vectors[0]) if vectors else 384,
         }
 
     def search_workspace(

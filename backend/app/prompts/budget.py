@@ -21,7 +21,9 @@ class TokenBudgetManager:
         """
         return len(self.encoding.encode(text))
 
-    def trim_context(self, system_prompt: str, question: str, chunks_formatted: list[str]) -> list[str]:
+    def trim_context(
+        self, system_prompt: str, question: str, chunks_formatted: list[str]
+    ) -> list[str]:
         """
         Trims the context chunks list to ensure the total prompt fits within the max_tokens limit.
         """
@@ -41,10 +43,10 @@ class TokenBudgetManager:
             "Assistant"
         )
         base_tokens = self.count_tokens(base_prompt)
-        
+
         # Calculate how many tokens we can allocate for chunks
         allowed_tokens = self.max_tokens - base_tokens
-        
+
         if allowed_tokens <= 0:
             logger.error("Base prompt size exceeds the total allowed token budget!")
             return []

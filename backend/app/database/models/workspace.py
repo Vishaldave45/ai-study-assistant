@@ -59,7 +59,4 @@ class Workspace(
     )
 
     def __repr__(self) -> str:
-        return (
-            f"Workspace(id={self.id}, "
-            f"name='{self.name}')"
-        )
+        return f"Workspace(id={self.id}, " f"name='{self.name}')"

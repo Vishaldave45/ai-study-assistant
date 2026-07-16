@@ -30,7 +30,7 @@ class ChunkingPipeline:
             if start_idx == -1:
                 # Fallback to search_start if index is not found
                 start_idx = search_start
-            
+
             end_idx = start_idx + len(chunk)
             offsets.append((start_idx, end_idx))
             # Advance search_start to avoid duplicate matches

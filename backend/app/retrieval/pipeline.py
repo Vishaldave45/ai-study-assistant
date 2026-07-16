@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 class RetrievalPipeline:
 
-    def __init__(self, vector_repo: VectorStoreRepository, embedding_service: EmbeddingService):
+    def __init__(
+        self, vector_repo: VectorStoreRepository, embedding_service: EmbeddingService
+    ):
         self.retriever = FAISSRetriever(vector_repo)
         self.embedding_service = embedding_service
 

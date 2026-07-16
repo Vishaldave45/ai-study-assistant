@@ -19,9 +19,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_chunking.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestChunkingEngine(unittest.TestCase):
@@ -81,11 +79,14 @@ class TestChunkingEngine(unittest.TestCase):
         doc = fitz.open()
         page = doc.new_page()
         for y in range(50, 800, 20):
-            page.insert_text((50, y), "Artificial Intelligence is the simulation of human intelligence processes by machines.")
-        
+            page.insert_text(
+                (50, y),
+                "Artificial Intelligence is the simulation of human intelligence processes by machines.",
+            )
+
         pdf_bytes = doc.write()
         doc.close()
-        
+
         mock_get_stream.return_value = BytesIO(pdf_bytes)
 
         # Process document
@@ -99,7 +100,7 @@ class TestChunkingEngine(unittest.TestCase):
         # Check DB persistence
         chunks = self.chunk_repo.list_by_document(self.document_id)
         self.assertEqual(len(chunks), num_chunks)
-        
+
         # Verify first chunk details
         self.assertEqual(chunks[0].chunk_index, 0)
         self.assertIn("Artificial Intelligence", chunks[0].content)
@@ -118,7 +119,7 @@ class TestChunkingEngine(unittest.TestCase):
         page.insert_text((50, 50), "First processing run text.")
         pdf_bytes1 = doc.write()
         doc.close()
-        
+
         mock_get_stream.return_value = BytesIO(pdf_bytes1)
         self.processing_service.process_document(self.user_id, self.document_id)
 

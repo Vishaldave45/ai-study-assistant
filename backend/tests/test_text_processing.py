@@ -16,7 +16,7 @@ class TestTextProcessing(unittest.TestCase):
         # Smart quotes and em/en dashes
         raw_text = "“Hello”—he said, ‘World’."
         normalized = TextNormalizer.normalize(raw_text)
-        self.assertEqual(normalized, '"Hello"-he said, \'World\'.')
+        self.assertEqual(normalized, "\"Hello\"-he said, 'World'.")
 
     def test_zero_width_spaces_and_tabs(self):
         # Zero width spaces should be removed, tabs to 4 spaces
@@ -34,7 +34,7 @@ class TestTextProcessing(unittest.TestCase):
         # Full pipeline test with stats
         raw_text = "“ﬁrst”   ﬂight  \n\n\n  line  2  "
         processed = TextProcessingPipeline.process(raw_text)
-        
+
         self.assertEqual(processed.text, '"first" flight\n\nline 2')
         self.assertEqual(processed.character_count, len('"first" flight\n\nline 2'))
         self.assertEqual(processed.line_count, 3)  # ["\"first\" flight", "", "line 2"]

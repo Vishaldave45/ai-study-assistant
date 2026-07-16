@@ -64,6 +64,7 @@ def rag_health(
     # 1. Check embedding engine by ensuring it is importable
     try:
         from app.embedding.service import EmbeddingService
+
         embedding_status = "loaded"
     except Exception:
         embedding_status = "error"
@@ -71,6 +72,7 @@ def rag_health(
     # 2. Check vector store
     try:
         from app.vectorstore.faiss_store import FAISSVectorStore
+
         store = FAISSVectorStore()
         vector_status = "loaded"
     except Exception:
@@ -79,13 +81,15 @@ def rag_health(
     # 3. Check LLM Layer
     try:
         from app.llm.service import LLMService
+
         llm_status = "connected"
     except Exception:
         llm_status = "disconnected"
 
     overall = (
         "healthy"
-        if "error" not in [embedding_status, vector_status] and llm_status == "connected"
+        if "error" not in [embedding_status, vector_status]
+        and llm_status == "connected"
         else "unhealthy"
     )
 

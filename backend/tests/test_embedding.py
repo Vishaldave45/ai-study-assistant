@@ -18,9 +18,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_embedding_db.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestEmbeddingService(unittest.TestCase):
@@ -117,6 +115,7 @@ class TestEmbeddingService(unittest.TestCase):
         # Mock SentenceTransformer encoding output
         mock_model = MagicMock()
         import numpy as np
+
         # BAAI/bge-small-en-v1.5 returns 384 dim vectors
         dummy_vector = np.random.randn(384)
         mock_model.encode.return_value = np.array([dummy_vector, dummy_vector])

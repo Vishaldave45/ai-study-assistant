@@ -21,7 +21,7 @@ class LocalStorageProvider(StorageProvider):
             self.base_path = Path(__file__).resolve().parent.parent.parent / "storage"
         else:
             self.base_path = Path(base_path)
-            
+
         # Ensure base directory exists
         self.base_path.mkdir(parents=True, exist_ok=True)
 
@@ -32,18 +32,20 @@ class LocalStorageProvider(StorageProvider):
         # Clean path and resolve absolute path
         cleaned_path = Path(path.lstrip("/"))
         abs_path = (self.base_path / cleaned_path).resolve()
-        
+
         # Verify it doesn't escape base_path
         if not abs_path.is_relative_to(self.base_path.resolve()):
-            raise FileNotFoundError(f"Path '{path}' is invalid or outside storage root.")
-            
+            raise FileNotFoundError(
+                f"Path '{path}' is invalid or outside storage root."
+            )
+
         return abs_path
 
     def save(self, path: str, data: BytesIO) -> bool:
         try:
             abs_path = self._get_absolute_path(path)
             abs_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Reset buffer and write file
             data.seek(0)
             with open(abs_path, "wb") as f:
@@ -78,7 +80,7 @@ class LocalStorageProvider(StorageProvider):
             abs_path = self._get_absolute_path(path)
             if not abs_path.exists() or not abs_path.is_file():
                 raise FileNotFoundError(f"File {path} not found.")
-            
+
             with open(abs_path, "rb") as f:
                 return BytesIO(f.read())
         except FileNotFoundError:

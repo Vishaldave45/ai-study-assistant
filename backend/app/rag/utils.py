@@ -8,6 +8,7 @@ class ExecutionTimer:
     """
     Simple context manager to measure and log execution duration of code blocks.
     """
+
     def __init__(self, operation_name: str = "Operation"):
         self.operation_name = operation_name
         self.start_time = None

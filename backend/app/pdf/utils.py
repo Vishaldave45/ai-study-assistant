@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import re
 import fitz
-from app.pdf.exceptions import CorruptedPDFError, PDFPasswordProtectedError, EmptyPDFError
+from app.pdf.exceptions import (
+    CorruptedPDFError,
+    PDFPasswordProtectedError,
+    EmptyPDFError,
+)
 
 
 def is_pdf(filename: str) -> bool:
@@ -16,16 +20,16 @@ def normalize_filename(filename: str) -> str:
     """
     if not filename:
         return "document.pdf"
-    
+
     parts = filename.rsplit(".", 1)
     name = parts[0]
     ext = parts[1] if len(parts) > 1 else "pdf"
-    
+
     # Remove non-alphanumeric characters except spaces, dashes, and underscores
     name_clean = re.sub(r"[^\w\s-]", "", name)
     # Replace spaces and dashes with underscores, clean consecutive underscores
     name_clean = re.sub(r"[\s-]+", "_", name_clean).strip("_").lower()
-    
+
     return f"{name_clean or 'document'}.{ext.lower()}"
 
 
@@ -34,7 +38,9 @@ def safe_open_pdf(stream: bytes) -> fitz.Document:
     try:
         doc = fitz.open(stream=stream, filetype="pdf")
     except Exception as exc:
-        raise CorruptedPDFError("The PDF file is corrupted and cannot be opened.") from exc
+        raise CorruptedPDFError(
+            "The PDF file is corrupted and cannot be opened."
+        ) from exc
 
     if doc.is_encrypted:
         doc.close()

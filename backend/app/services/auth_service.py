@@ -29,8 +29,9 @@ from app.exceptions.auth import (
     InvalidCredentialsError,
 )
 
+
 class AuthService:
-    
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -38,18 +39,28 @@ class AuthService:
         self.workspaces = WorkspaceRepository(db)
         self.refresh_tokens = RefreshTokenRepository(db)
 
-    def register(self,request: RegisterRequest,) -> RegisterResponse:
-        
+    def register(
+        self,
+        request: RegisterRequest,
+    ) -> RegisterResponse:
+
         if self.users.exists_by_email(request.email):
-            raise EmailAlreadyExistsError(
-                "Email already registered."
-            )
+            raise EmailAlreadyExistsError("Email already registered.")
 
         password_hash = PasswordHasher.hash(request.password)
 
-        user = User(email=request.email, full_name=request.full_name, password_hash=password_hash, status=UserStatus.PENDING_VERIFICATION, is_verified=False,)
+        user = User(
+            email=request.email,
+            full_name=request.full_name,
+            password_hash=password_hash,
+            status=UserStatus.PENDING_VERIFICATION,
+            is_verified=False,
+        )
 
-        workspace = Workspace( owner=user, name="My Workspace",)
+        workspace = Workspace(
+            owner=user,
+            name="My Workspace",
+        )
 
         try:
             self.users.add(user)
@@ -67,37 +78,46 @@ class AuthService:
         return RegisterResponse(
             message="Registration successful. Please verify your email."
         )
-        
-        
-    def login(self,request: LoginRequest, ip_address: str | None = None, user_agent: str | None = None,) -> TokenResponse:
-        
+
+    def login(
+        self,
+        request: LoginRequest,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> TokenResponse:
+
         user = self.users.get_by_email(request.email)
 
         if user is None:
-            raise InvalidCredentialsError("Invalid email or password." )
-
-        if not PasswordHasher.verify(request.password, user.password_hash,):
             raise InvalidCredentialsError("Invalid email or password.")
-        
+
+        if not PasswordHasher.verify(
+            request.password,
+            user.password_hash,
+        ):
+            raise InvalidCredentialsError("Invalid email or password.")
+
         """if not user.is_verified:
             raise AccountNotVerifiedError("Please verify your email first.")"""
 
         if user.status == UserStatus.SUSPENDED:
             raise AccountSuspendedError("Your account has been suspended.")
 
-        access_token = JWTProvider.create_access_token(user.id,)
+        access_token = JWTProvider.create_access_token(
+            user.id,
+        )
 
         refresh_token = RefreshTokenManager.generate()
 
-        refresh_token_hash = RefreshTokenManager.hash(refresh_token,)
+        refresh_token_hash = RefreshTokenManager.hash(
+            refresh_token,
+        )
 
         refresh_entity = RefreshToken(
             user_id=user.id,
             token_hash=refresh_token_hash,
             expires_at=datetime.utcnow()
-            + timedelta(
-                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-            ),
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
             ip_address=ip_address,
             user_agent=user_agent,
         )
@@ -126,58 +146,34 @@ class AuthService:
         user_agent: str | None = None,
     ) -> TokenResponse:
 
-        token_hash = RefreshTokenManager.hash(
-            request.refresh_token
-        )
+        token_hash = RefreshTokenManager.hash(request.refresh_token)
 
-        refresh_entity = (
-            self.refresh_tokens.get_active_by_token_hash(
-                token_hash
-            )
-        )
+        refresh_entity = self.refresh_tokens.get_active_by_token_hash(token_hash)
 
         if refresh_entity is None:
-            raise InvalidCredentialsError(
-                "Invalid refresh token."
-            )
+            raise InvalidCredentialsError("Invalid refresh token.")
 
         if refresh_entity.expires_at < datetime.utcnow():
-            raise InvalidCredentialsError(
-                "Refresh token expired."
-            )
+            raise InvalidCredentialsError("Refresh token expired.")
 
         user = refresh_entity.user
 
         if user.status == UserStatus.SUSPENDED:
-            raise AccountSuspendedError(
-                "Your account has been suspended."
-            )
+            raise AccountSuspendedError("Your account has been suspended.")
 
-        self.refresh_tokens.revoke(
-            refresh_entity
-        )
+        self.refresh_tokens.revoke(refresh_entity)
 
-        access_token = JWTProvider.create_access_token(
-            user.id
-        )
+        access_token = JWTProvider.create_access_token(user.id)
 
-        new_refresh_token = (
-            RefreshTokenManager.generate()
-        )
+        new_refresh_token = RefreshTokenManager.generate()
 
-        new_refresh_hash = (
-            RefreshTokenManager.hash(
-                new_refresh_token
-            )
-        )
+        new_refresh_hash = RefreshTokenManager.hash(new_refresh_token)
 
         refresh = RefreshToken(
             user_id=user.id,
             token_hash=new_refresh_hash,
             expires_at=datetime.utcnow()
-            + timedelta(
-                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-            ),
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
             ip_address=ip_address,
             user_agent=user_agent,
         )
@@ -203,15 +199,9 @@ class AuthService:
         refresh_token: str,
     ) -> None:
 
-        token_hash = RefreshTokenManager.hash(
-            refresh_token
-        )
+        token_hash = RefreshTokenManager.hash(refresh_token)
 
-        token = (
-            self.refresh_tokens.get_active_by_token_hash(
-                token_hash
-            )
-        )
+        token = self.refresh_tokens.get_active_by_token_hash(token_hash)
 
         if token is None:
             return

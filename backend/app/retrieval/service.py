@@ -62,7 +62,9 @@ class RetrievalService:
         for res in results:
             content = chunk_map.get(res.chunk_id)
             if content is None:
-                logger.warning(f"Chunk content not found in database for chunk_id {res.chunk_id}")
+                logger.warning(
+                    f"Chunk content not found in database for chunk_id {res.chunk_id}"
+                )
                 continue
             response_items.append(
                 SearchResponseItem(

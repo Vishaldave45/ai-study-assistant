@@ -10,12 +10,16 @@ ModelType = TypeVar("ModelType")
 
 
 class BaseRepository(ABC, Generic[ModelType]):
-   
+
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_id(self,model: type[ModelType],entity_id: UUID,) -> ModelType | None:
-       return self.db.get(model, entity_id)
+    def get_by_id(
+        self,
+        model: type[ModelType],
+        entity_id: UUID,
+    ) -> ModelType | None:
+        return self.db.get(model, entity_id)
 
     def add(self, entity: ModelType) -> ModelType:
         self.db.add(entity)

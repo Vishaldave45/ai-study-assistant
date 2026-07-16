@@ -31,9 +31,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_vectorstore_db.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestVectorStore(unittest.TestCase):
@@ -51,7 +49,9 @@ class TestVectorStore(unittest.TestCase):
 
         # Set up a temporary directory for vector storage to isolate tests
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.patcher1 = patch("app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name)
+        self.patcher1 = patch(
+            "app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name
+        )
         self.patcher1.start()
 
         self.store = FAISSVectorStore()
@@ -97,7 +97,7 @@ class TestVectorStore(unittest.TestCase):
     def test_create_and_load_workspace_index(self):
         # Create a new index in memory
         self.store.create(self.workspace_id)
-        
+
         # Save it to disk
         self.store.save(self.workspace_id)
 
@@ -124,7 +124,7 @@ class TestVectorStore(unittest.TestCase):
         # Create dummy vectors and metadata
         chunk_id1 = uuid4()
         chunk_id2 = uuid4()
-        
+
         # 384-dimensional vectors
         vec1 = [0.1] * VECTOR_DIMENSION
         vec2 = [0.5] * VECTOR_DIMENSION
@@ -199,7 +199,7 @@ class TestVectorStore(unittest.TestCase):
         self.store.create(self.workspace_id)
         vectors = [[0.1] * VECTOR_DIMENSION]
         metadata = [{"chunk_id": uuid4(), "document_id": self.document_id}]
-        
+
         self.store.add(self.workspace_id, vectors, metadata)
         self.store.reset(self.workspace_id)
 
@@ -212,15 +212,21 @@ class TestVectorStore(unittest.TestCase):
     @patch("app.embedding.models.SentenceTransformer")
     def test_service_indexing_flow(self, mock_transformer, mock_pipeline, mock_pdf):
         # Setup mocks
-        mock_pdf.parse.return_value = MagicMock(text="Parsed text contents", page_count=1)
-        mock_pipeline.process.return_value = MagicMock(text="Cleaned text contents", character_count=21, word_count=3)
+        mock_pdf.parse.return_value = MagicMock(
+            text="Parsed text contents", page_count=1
+        )
+        mock_pipeline.process.return_value = MagicMock(
+            text="Cleaned text contents", character_count=21, word_count=3
+        )
 
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([[0.1] * VECTOR_DIMENSION])
         mock_transformer.return_value = mock_model
 
         # Mock the document stream loader in DocumentService
-        with patch("app.services.document_service.DocumentService.get_document_stream") as mock_stream:
+        with patch(
+            "app.services.document_service.DocumentService.get_document_stream"
+        ) as mock_stream:
             mock_stream.return_value = MagicMock(getvalue=lambda: b"PDF Bytes")
 
             service = VectorStoreService(self.db)

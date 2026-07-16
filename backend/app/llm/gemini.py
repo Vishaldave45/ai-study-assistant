@@ -41,7 +41,11 @@ class GeminiProvider(LLMProvider):
             )
 
             answer = response.text or ""
-            usage = response.usage_metadata.model_dump() if response.usage_metadata else None
+            usage = (
+                response.usage_metadata.model_dump()
+                if response.usage_metadata
+                else None
+            )
             finish_reason = None
             if response.candidates:
                 fr = response.candidates[0].finish_reason
@@ -56,9 +60,13 @@ class GeminiProvider(LLMProvider):
         except APIError as e:
             logger.error(f"Gemini APIError ({e.code}): {e.message}")
             if e.code == 429:
-                raise LLMRateLimit(f"Gemini rate limit exceeded (429): {e.message}") from e
+                raise LLMRateLimit(
+                    f"Gemini rate limit exceeded (429): {e.message}"
+                ) from e
             elif e.code == 404:
-                raise InvalidModelError(f"Model not found or invalid (404): {e.message}") from e
+                raise InvalidModelError(
+                    f"Model not found or invalid (404): {e.message}"
+                ) from e
             elif e.code == 408 or e.code == 504:
                 raise LLMTimeout(f"Gemini request timed out: {e.message}") from e
             else:
@@ -71,7 +79,9 @@ class GeminiProvider(LLMProvider):
             elif "rate limit" in err_msg or "429" in err_msg or "quota" in err_msg:
                 raise LLMRateLimit(f"Gemini rate limit exceeded: {e}") from e
             elif "model" in err_msg or "not found" in err_msg:
-                raise InvalidModelError(f"Invalid model name or model not found: {e}") from e
+                raise InvalidModelError(
+                    f"Invalid model name or model not found: {e}"
+                ) from e
             else:
                 raise LLMError(f"Gemini generation failed: {e}") from e
 
@@ -96,9 +106,13 @@ class GeminiProvider(LLMProvider):
         except APIError as e:
             logger.error(f"Gemini stream APIError ({e.code}): {e.message}")
             if e.code == 429:
-                raise LLMRateLimit(f"Gemini stream rate limit exceeded (429): {e.message}") from e
+                raise LLMRateLimit(
+                    f"Gemini stream rate limit exceeded (429): {e.message}"
+                ) from e
             else:
-                raise LLMError(f"Gemini stream API error ({e.code}): {e.message}") from e
+                raise LLMError(
+                    f"Gemini stream API error ({e.code}): {e.message}"
+                ) from e
         except Exception as e:
             logger.error(f"Gemini stream request failed: {e}")
             err_msg = str(e).lower()

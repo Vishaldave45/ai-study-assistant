@@ -46,4 +46,3 @@ class DocumentEmbedResponse(BaseSchema):
     chunks: int
     dimension: int
     model: str
-

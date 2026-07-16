@@ -18,7 +18,9 @@ class RAGService:
         self.db = db
         self.orchestrator = RAGOrchestrator(db)
 
-    def query(self, workspace_id: UUID, question: str, current_user_id: UUID) -> AnswerResponse:
+    def query(
+        self, workspace_id: UUID, question: str, current_user_id: UUID
+    ) -> AnswerResponse:
         """
         Validates ownership, validates query input, measures execution time,
         and executes the orchestrator.
@@ -45,7 +47,9 @@ class RAGService:
         # Run with latency measurement
         start_time = time.perf_counter()
         try:
-            logger.info(f"RAGService: executing query for question '{question}' in workspace {workspace_id}")
+            logger.info(
+                f"RAGService: executing query for question '{question}' in workspace {workspace_id}"
+            )
             result = self.orchestrator.query(workspace_id, question)
             processing_time_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -58,7 +62,9 @@ class RAGService:
             )
         except NoContextFound:
             processing_time_ms = int((time.perf_counter() - start_time) * 1000)
-            logger.info("RAGService: No context found, returning fallback response DTO.")
+            logger.info(
+                "RAGService: No context found, returning fallback response DTO."
+            )
             return AnswerResponse(
                 answer="I couldn't find relevant information in your uploaded documents.",
                 citations=[],

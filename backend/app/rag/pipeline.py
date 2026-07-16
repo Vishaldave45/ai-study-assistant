@@ -7,7 +7,12 @@ from app.database.models.document import Document
 from app.retrieval.service import RetrievalService
 from app.prompts.builder import PromptBuilder
 from app.llm.service import LLMService
-from app.rag.exceptions import NoContextFound, GenerationFailed, RetrieverFailed, RAGException
+from app.rag.exceptions import (
+    NoContextFound,
+    GenerationFailed,
+    RetrieverFailed,
+    RAGException,
+)
 from app.rag.citations import CitationFormatter
 
 logger = logging.getLogger(__name__)
@@ -51,11 +56,13 @@ class RAGPipeline:
         citations = []
         for res in search_response.results:
             filename = doc_map.get(res.document_id, "Unknown Document")
-            chunks_for_builder.append({
-                "content": res.content,
-                "filename": filename,
-                "page": "N/A",
-            })
+            chunks_for_builder.append(
+                {
+                    "content": res.content,
+                    "filename": filename,
+                    "page": "N/A",
+                }
+            )
             citation = CitationFormatter.format_citation(
                 filename=filename,
                 score=res.score,

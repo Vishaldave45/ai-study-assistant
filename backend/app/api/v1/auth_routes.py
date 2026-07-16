@@ -1,4 +1,3 @@
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -33,11 +32,21 @@ from app.exceptions.auth import (
 from app.dependencies.auth import get_current_user
 from app.database.models.user import User
 
-router = APIRouter(prefix="/auth",tags=["Authentication"],)
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
 
-@router.post("/register",response_model=RegisterResponse, status_code=status.HTTP_201_CREATED,)
-def register(request: RegisterRequest,  db: Session = Depends(get_db),) -> RegisterResponse:
+@router.post(
+    "/register",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def register(
+    request: RegisterRequest,
+    db: Session = Depends(get_db),
+) -> RegisterResponse:
 
     service = AuthService(db)
 
@@ -45,8 +54,10 @@ def register(request: RegisterRequest,  db: Session = Depends(get_db),) -> Regis
         return service.register(request)
 
     except EmailAlreadyExistsError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail=str(exc),) from exc
-
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -67,9 +78,7 @@ def login(
     try:
         return service.login(
             request=request,
-            ip_address=http_request.client.host
-            if http_request.client
-            else None,
+            ip_address=http_request.client.host if http_request.client else None,
             user_agent=http_request.headers.get("User-Agent"),
         )
 
@@ -108,12 +117,8 @@ def refresh(
     try:
         return service.refresh(
             request=request,
-            ip_address=http_request.client.host
-            if http_request.client
-            else None,
-            user_agent=http_request.headers.get(
-                "User-Agent"
-            ),
+            ip_address=http_request.client.host if http_request.client else None,
+            user_agent=http_request.headers.get("User-Agent"),
         )
 
     except InvalidCredentialsError as exc:
@@ -140,16 +145,11 @@ def logout(
 
     service = AuthService(db)
 
-    service.logout(
-        request.refresh_token
-    )
+    service.logout(request.refresh_token)
 
-    return LogoutResponse(
-        message="Logged out successfully."
-    )
-    
-    
-    
+    return LogoutResponse(message="Logged out successfully.")
+
+
 @router.get(
     "/me",
 )

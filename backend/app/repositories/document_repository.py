@@ -15,12 +15,9 @@ class DocumentRepository(BaseRepository[Document]):
         self,
         document_id: UUID,
     ) -> Document | None:
-        statement = (
-            select(Document)
-            .where(
-                Document.id == document_id,
-                Document.deleted_at.is_(None),
-            )
+        statement = select(Document).where(
+            Document.id == document_id,
+            Document.deleted_at.is_(None),
         )
         result = self.db.execute(statement)
         return result.scalar_one_or_none()
@@ -44,12 +41,9 @@ class DocumentRepository(BaseRepository[Document]):
         self,
         document_id: UUID,
     ) -> bool:
-        statement = (
-            select(Document)
-            .where(
-                Document.id == document_id,
-                Document.deleted_at.is_(None),
-            )
+        statement = select(Document).where(
+            Document.id == document_id,
+            Document.deleted_at.is_(None),
         )
         return self.db.execute(statement).first() is not None
 
@@ -65,18 +59,13 @@ class DocumentRepository(BaseRepository[Document]):
         workspace_id: UUID,
         query: str | None = None,
     ) -> int:
-        statement = (
-            select(func.count(Document.id))
-            .where(
-                Document.workspace_id == workspace_id,
-                Document.deleted_at.is_(None),
-            )
+        statement = select(func.count(Document.id)).where(
+            Document.workspace_id == workspace_id,
+            Document.deleted_at.is_(None),
         )
 
         if query:
-            statement = statement.where(
-                Document.original_filename.ilike(f"%{query}%")
-            )
+            statement = statement.where(Document.original_filename.ilike(f"%{query}%"))
 
         return self.db.execute(statement).scalar() or 0
 
@@ -97,9 +86,7 @@ class DocumentRepository(BaseRepository[Document]):
         )
 
         if query:
-            statement = statement.where(
-                Document.original_filename.ilike(f"%{query}%")
-            )
+            statement = statement.where(Document.original_filename.ilike(f"%{query}%"))
 
         statement = statement.offset(skip).limit(limit)
         result = self.db.execute(statement)

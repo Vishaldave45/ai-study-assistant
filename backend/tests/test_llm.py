@@ -26,7 +26,7 @@ class TestLLM(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.text = "Hello! I am an AI."
         mock_response.model_version = "gemini-2.5-flash-test"
-        
+
         mock_usage = MagicMock()
         mock_usage.model_dump.return_value = {"prompt_tokens": 10, "output_tokens": 20}
         mock_response.usage_metadata = mock_usage
@@ -56,7 +56,10 @@ class TestLLM(unittest.TestCase):
         mock_chunk2 = MagicMock()
         mock_chunk2.text = "World"
 
-        mock_client.models.generate_content_stream.return_value = [mock_chunk1, mock_chunk2]
+        mock_client.models.generate_content_stream.return_value = [
+            mock_chunk1,
+            mock_chunk2,
+        ]
 
         provider = GeminiProvider()
         chunks = list(provider.stream("Hi"))
@@ -101,7 +104,7 @@ class TestLLM(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         service = LLMService(provider_type="gemini")
-        
+
         with self.assertRaises(LLMError):
             service.generate("")
 

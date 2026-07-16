@@ -34,7 +34,9 @@ class FAISSVectorStore(VectorStoreProvider):
         return workspace_dir, index_path, metadata_path
 
     def create(self, workspace_id: UUID) -> None:
-        workspace_dir, index_path, metadata_path = self._get_workspace_paths(workspace_id)
+        workspace_dir, index_path, metadata_path = self._get_workspace_paths(
+            workspace_id
+        )
         workspace_dir.mkdir(parents=True, exist_ok=True)
 
         # Create empty IndexFlatIP wrapped in IndexIDMap
@@ -48,10 +50,14 @@ class FAISSVectorStore(VectorStoreProvider):
         logger.info(f"Created new empty FAISS index for workspace {workspace_id}")
 
     def load(self, workspace_id: UUID) -> None:
-        workspace_dir, index_path, metadata_path = self._get_workspace_paths(workspace_id)
+        workspace_dir, index_path, metadata_path = self._get_workspace_paths(
+            workspace_id
+        )
 
         if not index_path.exists() or not metadata_path.exists():
-            raise IndexNotFoundError(f"Index or metadata not found for workspace {workspace_id}")
+            raise IndexNotFoundError(
+                f"Index or metadata not found for workspace {workspace_id}"
+            )
 
         try:
             index = faiss.read_index(str(index_path))
@@ -60,23 +66,35 @@ class FAISSVectorStore(VectorStoreProvider):
             self._cache[workspace_id] = (index, metadata_store)
             logger.info(f"Loaded FAISS index for workspace {workspace_id} from disk")
         except Exception as e:
-            logger.error(f"Failed to load FAISS index for workspace {workspace_id}: {e}")
-            raise IndexNotFoundError(f"Failed to load FAISS index for workspace {workspace_id}: {e}") from e
+            logger.error(
+                f"Failed to load FAISS index for workspace {workspace_id}: {e}"
+            )
+            raise IndexNotFoundError(
+                f"Failed to load FAISS index for workspace {workspace_id}: {e}"
+            ) from e
 
     def save(self, workspace_id: UUID) -> None:
         if workspace_id not in self._cache:
-            raise IndexNotFoundError(f"Workspace {workspace_id} is not loaded in memory.")
+            raise IndexNotFoundError(
+                f"Workspace {workspace_id} is not loaded in memory."
+            )
 
-        workspace_dir, index_path, metadata_path = self._get_workspace_paths(workspace_id)
+        workspace_dir, index_path, metadata_path = self._get_workspace_paths(
+            workspace_id
+        )
         workspace_dir.mkdir(parents=True, exist_ok=True)
 
         index, metadata_store = self._cache[workspace_id]
         try:
             faiss.write_index(index, str(index_path))
             metadata_store.save()
-            logger.info(f"Saved FAISS index and metadata for workspace {workspace_id} to disk")
+            logger.info(
+                f"Saved FAISS index and metadata for workspace {workspace_id} to disk"
+            )
         except Exception as e:
-            logger.error(f"Failed to save FAISS index for workspace {workspace_id}: {e}")
+            logger.error(
+                f"Failed to save FAISS index for workspace {workspace_id}: {e}"
+            )
             raise VectorStoreError(f"Failed to save FAISS index: {e}") from e
 
     def _ensure_loaded(self, workspace_id: UUID) -> tuple[faiss.Index, MetadataStore]:
@@ -204,6 +222,7 @@ class FAISSVectorStore(VectorStoreProvider):
         """
         Check if the index and metadata PKL file exist on disk for the workspace.
         """
-        workspace_dir, index_path, metadata_path = self._get_workspace_paths(workspace_id)
+        workspace_dir, index_path, metadata_path = self._get_workspace_paths(
+            workspace_id
+        )
         return index_path.exists() and metadata_path.exists()
-

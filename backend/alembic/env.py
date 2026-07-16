@@ -16,8 +16,6 @@ from app.database.models.user import User
 from app.database.models.workspace import Workspace
 from app.database.models.refresh_token import RefreshToken
 
-
-
 config = context.config
 
 if config.config_file_name is not None:
@@ -90,9 +88,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

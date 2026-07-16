@@ -58,9 +58,7 @@ class WorkspaceService:
         try:
             self.db.commit()
             self.db.refresh(workspace)
-            logger.info(
-                f"Workspace Created: {workspace.id} by user {owner_id}"
-            )
+            logger.info(f"Workspace Created: {workspace.id} by user {owner_id}")
         except Exception:
             self.db.rollback()
             raise
@@ -99,9 +97,7 @@ class WorkspaceService:
     ) -> Workspace:
         workspace = self.workspaces.get_by_id(workspace_id)
         if workspace is None:
-            raise WorkspaceNotFoundError(
-                f"Workspace with ID {workspace_id} not found."
-            )
+            raise WorkspaceNotFoundError(f"Workspace with ID {workspace_id} not found.")
 
         self._validate_owner(workspace, owner_id, action="access")
 
@@ -115,9 +111,7 @@ class WorkspaceService:
     ) -> Workspace:
         workspace = self.workspaces.get_by_id(workspace_id)
         if workspace is None:
-            raise WorkspaceNotFoundError(
-                f"Workspace with ID {workspace_id} not found."
-            )
+            raise WorkspaceNotFoundError(f"Workspace with ID {workspace_id} not found.")
 
         self._validate_owner(workspace, owner_id, action="update")
 
@@ -133,9 +127,7 @@ class WorkspaceService:
         try:
             self.db.commit()
             self.db.refresh(workspace)
-            logger.info(
-                f"Workspace Updated: {workspace.id} by user {owner_id}"
-            )
+            logger.info(f"Workspace Updated: {workspace.id} by user {owner_id}")
         except Exception:
             self.db.rollback()
             raise
@@ -149,9 +141,7 @@ class WorkspaceService:
     ) -> None:
         workspace = self.workspaces.get_by_id(workspace_id)
         if workspace is None:
-            raise WorkspaceNotFoundError(
-                f"Workspace with ID {workspace_id} not found."
-            )
+            raise WorkspaceNotFoundError(f"Workspace with ID {workspace_id} not found.")
 
         self._validate_owner(workspace, owner_id, action="delete")
 
@@ -159,9 +149,7 @@ class WorkspaceService:
 
         try:
             self.db.commit()
-            logger.info(
-                f"Workspace Deleted: {workspace_id} by user {owner_id}"
-            )
+            logger.info(f"Workspace Deleted: {workspace_id} by user {owner_id}")
         except Exception:
             self.db.rollback()
             raise

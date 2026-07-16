@@ -56,7 +56,9 @@ class DocumentService:
         if workspace is None:
             raise WorkspaceNotFoundError(f"Workspace with ID {workspace_id} not found.")
         if workspace.owner_id != owner_id:
-            raise WorkspaceAccessDeniedError("Only the owner can access this workspace.")
+            raise WorkspaceAccessDeniedError(
+                "Only the owner can access this workspace."
+            )
 
     def upload_document(
         self,
@@ -76,7 +78,7 @@ class DocumentService:
             file_data = file.file.read()
         except Exception as e:
             raise ValueError(f"Failed to read uploaded file content: {str(e)}")
-            
+
         file_size = len(file_data)
         if file_size > MAX_FILE_SIZE:
             raise FileSizeExceededError("File size exceeds the 20MB limit.")
@@ -116,7 +118,9 @@ class DocumentService:
             try:
                 storage.delete(storage_path)
             except Exception as storage_err:
-                logger.error(f"Failed to delete stored file {storage_path} during rollback: {storage_err}")
+                logger.error(
+                    f"Failed to delete stored file {storage_path} during rollback: {storage_err}"
+                )
             raise e
 
     def get_document(
@@ -146,7 +150,9 @@ class DocumentService:
 
         storage_path = f"workspaces/{document.workspace_id}/{document.stored_filename}"
         if not storage.exists(storage_path):
-            raise FileNotFoundError(f"Physical file for document {document_id} not found on disk.")
+            raise FileNotFoundError(
+                f"Physical file for document {document_id} not found on disk."
+            )
 
         return storage.open(storage_path)
 
@@ -192,7 +198,9 @@ class DocumentService:
 
         storage_path = f"workspaces/{document.workspace_id}/{document.stored_filename}"
         if not storage.exists(storage_path):
-            raise FileNotFoundError(f"Physical file for document {document_id} not found on disk.")
+            raise FileNotFoundError(
+                f"Physical file for document {document_id} not found on disk."
+            )
 
         # Resolve path
         if hasattr(storage, "_get_absolute_path"):

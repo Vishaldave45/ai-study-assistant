@@ -28,7 +28,7 @@ class PromptBuilder:
         """
         # 1. Format each chunk
         formatted_chunks = []
-        for chunk in chunks[:self.max_chunks]:
+        for chunk in chunks[: self.max_chunks]:
             formatted = ContextFormatter.format_chunk(
                 content=chunk["content"],
                 filename=chunk["filename"],
@@ -60,7 +60,10 @@ class PromptBuilder:
                 "=====================================\n"
                 "Assistant"
             )
-            if self.budget_manager.count_tokens(base_prompt) > self.budget_manager.max_tokens:
+            if (
+                self.budget_manager.count_tokens(base_prompt)
+                > self.budget_manager.max_tokens
+            ):
                 raise PromptTooLargeError(
                     f"The query is too large to fit in the token budget of {self.budget_manager.max_tokens}."
                 )

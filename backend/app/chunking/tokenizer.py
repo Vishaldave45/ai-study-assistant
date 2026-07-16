@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import tiktoken
+
     _ENCODING = tiktoken.get_encoding("cl100k_base")
 except Exception as e:
     logger.warning(

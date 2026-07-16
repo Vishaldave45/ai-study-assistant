@@ -20,9 +20,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_rag_db.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestRAG(unittest.TestCase):
@@ -40,7 +38,9 @@ class TestRAG(unittest.TestCase):
 
         # Temporary vector storage path
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.patcher1 = patch("app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name)
+        self.patcher1 = patch(
+            "app.vectorstore.faiss_store.STORAGE_DIR", self.temp_dir.name
+        )
         self.patcher1.start()
 
         # Mock EmbeddingService to avoid loading SentenceTransformer
@@ -93,7 +93,10 @@ class TestRAG(unittest.TestCase):
         self.db.commit()
 
         # Mock index_exists to True for the workspace so validator passes
-        self.patcher_exists = patch("app.vectorstore.faiss_store.FAISSVectorStore.index_exists", return_value=True)
+        self.patcher_exists = patch(
+            "app.vectorstore.faiss_store.FAISSVectorStore.index_exists",
+            return_value=True,
+        )
         self.patcher_exists.start()
 
     def tearDown(self):
@@ -112,7 +115,7 @@ class TestRAG(unittest.TestCase):
         mock_result.document_id = self.doc_id
         mock_result.score = 0.92
         mock_result.content = "Neural Networks are inspired by the brain."
-        
+
         mock_search_response = MagicMock()
         mock_search_response.results = [mock_result]
         self.mock_retrieval_service.search.return_value = mock_search_response
@@ -160,11 +163,13 @@ class TestRAG(unittest.TestCase):
         self.mock_retrieval_service.search.return_value = mock_search_response
 
         service = RAGService(self.db)
-        response = service.query(self.workspace_id, "Explain quantum physics", self.user_id)
+        response = service.query(
+            self.workspace_id, "Explain quantum physics", self.user_id
+        )
 
         self.assertEqual(
             response.answer,
-            "I couldn't find relevant information in your uploaded documents."
+            "I couldn't find relevant information in your uploaded documents.",
         )
         self.assertEqual(len(response.citations), 0)
 

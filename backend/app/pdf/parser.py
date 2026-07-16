@@ -22,7 +22,7 @@ class PDFParser:
             for page in doc:
                 page_text = page.get_text() or ""
                 text_pages.append(page_text)
-            
+
             combined_text = "\n".join(text_pages)
 
             return ParsedPDF(
@@ -42,4 +42,3 @@ class PDFParser:
             raise
         finally:
             doc.close()
-            

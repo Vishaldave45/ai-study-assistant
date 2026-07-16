@@ -5,9 +5,4 @@ class ContextFormatter:
         """
         Formats a chunk for embedding in the prompt context.
         """
-        return (
-            f"Document: {filename}\n"
-            f"Page: {page}\n"
-            f"Chunk:\n"
-            f"{content}\n"
-        )
+        return f"Document: {filename}\n" f"Page: {page}\n" f"Chunk:\n" f"{content}\n"

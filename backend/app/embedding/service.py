@@ -18,7 +18,7 @@ class EmbeddingService:
         logger.info(f"Generating embeddings for {len(texts)} chunks...")
         results = []
         batch_size = EMBEDDING_BATCH_SIZE
-        
+
         for i in range(0, len(texts), batch_size):
             batch_texts = texts[i : i + batch_size]
             try:
@@ -33,7 +33,9 @@ class EmbeddingService:
                         )
                     )
             except Exception as exc:
-                logger.error(f"Failed to generate embeddings batch starting at index {i}: {exc}")
+                logger.error(
+                    f"Failed to generate embeddings batch starting at index {i}: {exc}"
+                )
                 raise
 
         logger.info("Successfully generated all embeddings.")
