@@ -13,3 +13,5 @@ class DocumentStatus(str, Enum):
     PROCESSING = "processing"
     READY = "ready"
     FAILED = "failed"
+    EMBEDDING = "embedding"
+    EMBEDDED = "embedded"

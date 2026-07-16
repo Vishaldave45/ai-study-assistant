@@ -34,6 +34,7 @@ from app.schemas.document import (
     DocumentCleanPreviewResponse,
     DocumentChunkResponse,
     DocumentChunkPreviewItem,
+    DocumentEmbedResponse,
 )
 from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
 from app.text import TextProcessingPipeline, TextProcessingError
@@ -514,3 +515,45 @@ def chunk_document(
         average_tokens=avg_tokens,
         chunks=preview_items,
     )
+
+
+@router.post(
+    "/{id}/embed",
+    response_model=DocumentEmbedResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate embeddings for document chunks",
+    description="Runs the embedding pipeline on the document chunks, returning the model information and dimensions.",
+)
+def embed_document(
+    id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentEmbedResponse:
+    from app.embedding.pipeline import EmbeddingPipeline
+    pipeline = EmbeddingPipeline(db)
+    
+    try:
+        results = pipeline.run_pipeline(
+            owner_id=current_user.id,
+            document_id=id,
+        )
+        
+        # BAAI/bge-small-en-v1.5 details
+        model_name = "BAAI/bge-small-en-v1.5"
+        dimension = 384
+        
+        return DocumentEmbedResponse(
+            chunks=len(results),
+            dimension=dimension,
+            model=model_name,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Embedding pipeline failed: {str(exc)}",
+        ) from exc
