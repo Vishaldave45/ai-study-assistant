@@ -199,3 +199,11 @@ class FAISSVectorStore(VectorStoreProvider):
         index.reset()
         metadata_store.metadata = {}
         logger.info(f"Reset FAISS index and metadata for workspace {workspace_id}")
+
+    def index_exists(self, workspace_id: UUID) -> bool:
+        """
+        Check if the index and metadata PKL file exist on disk for the workspace.
+        """
+        workspace_dir, index_path, metadata_path = self._get_workspace_paths(workspace_id)
+        return index_path.exists() and metadata_path.exists()
+
