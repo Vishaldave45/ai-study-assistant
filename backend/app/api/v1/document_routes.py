@@ -37,6 +37,7 @@ from app.schemas.document import (
     DocumentEmbedResponse,
 )
 from app.vectorstore.schemas import IndexResult
+from app.retrieval.schemas import SearchRequest, SearchResponse
 from app.pdf import PDFParser, PDFParseError, PDFPasswordProtectedError, CorruptedPDFError, EmptyPDFError
 from app.text import TextProcessingPipeline, TextProcessingError
 from app.services.document_service import DocumentService
@@ -636,4 +637,54 @@ def index_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during indexing: {str(exc)}",
         ) from exc
+
+
+@router.post(
+    "/search",
+    response_model=SearchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Semantic search across workspace document chunks",
+    description="Retrieves the top matching document chunks for a natural language query in a workspace.",
+)
+def search_documents(
+    request: SearchRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> SearchResponse:
+    from app.repositories.workspace_repository import WorkspaceRepository
+    from app.retrieval.service import RetrievalService
+    from app.retrieval.exceptions import RetrievalError
+
+    # Validate Workspace existence and ownership
+    workspaces = WorkspaceRepository(db)
+    workspace = workspaces.get_by_id(request.workspace_id)
+    if workspace is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Workspace with ID {request.workspace_id} not found.",
+        )
+    if workspace.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the owner can access this workspace.",
+        )
+
+    service = RetrievalService(db)
+    try:
+        response = service.search(
+            workspace_id=request.workspace_id,
+            query=request.query,
+        )
+        return response
+    except RetrievalError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Retrieval failed: {str(exc)}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred during search: {str(exc)}",
+        ) from exc
+
 
