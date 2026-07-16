@@ -40,3 +40,10 @@ class DocumentChunkResponse(BaseSchema):
     total_chunks: int
     average_tokens: int
     chunks: list[DocumentChunkPreviewItem]
+
+
+class DocumentEmbedResponse(BaseSchema):
+    chunks: int
+    dimension: int
+    model: str
+

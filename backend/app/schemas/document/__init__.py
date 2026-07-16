@@ -4,6 +4,7 @@ from .response import (
     DocumentCleanPreviewResponse,
     DocumentChunkPreviewItem,
     DocumentChunkResponse,
+    DocumentEmbedResponse,
 )
 from .list import DocumentListResponse
 from .message import MessageResponse
@@ -16,4 +17,5 @@ __all__ = [
     "DocumentCleanPreviewResponse",
     "DocumentChunkPreviewItem",
     "DocumentChunkResponse",
+    "DocumentEmbedResponse",
 ]
