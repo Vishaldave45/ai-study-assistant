@@ -283,7 +283,7 @@ Example Response
 
 # ⚙️ Installation
 
-Clone the repository
+## Clone the Repository
 
 ```bash
 git clone https://github.com/Vishaldave45/ai-study-assistant.git
@@ -291,30 +291,50 @@ git clone https://github.com/Vishaldave45/ai-study-assistant.git
 cd ai-study-assistant/backend
 ```
 
-Create virtual environment
+## Install uv
 
 ```bash
-python -m venv .venv
+pip install uv
 ```
 
-Activate
+or
 
-Linux/macOS
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+## Create Virtual Environment
+
+```bash
+uv venv
+```
+
+## Activate Virtual Environment
+
+### Linux / macOS
 
 ```bash
 source .venv/bin/activate
 ```
 
-Windows
+### Windows
 
 ```powershell
 .venv\Scripts\activate
 ```
 
-Install dependencies
+## Install Dependencies
 
 ```bash
-pip install -e .
+uv sync
+```
+
+or, if you don't commit `uv.lock`:
+
+```bash
+uv sync --all-extras
+```
+
 ```
 
 Create `.env`
