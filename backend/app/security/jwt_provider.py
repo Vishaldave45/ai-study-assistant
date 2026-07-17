@@ -14,25 +14,31 @@ from app.security.token_types import TokenType
 if TYPE_CHECKING:
     from app.schemas.auth.token_payload import TokenPayload
 
+
 class JWTProvider:
     ALGORITHM = "HS256"
 
     @classmethod
-    def create_access_token(cls,user_id: UUID,) -> str:
+    def create_access_token(
+        cls,
+        user_id: UUID,
+    ) -> str:
 
         now = datetime.now(timezone.utc)
 
         payload = {
             "sub": str(user_id),
             "iat": now,
-            "exp": now + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-            ),
+            "exp": now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
             "jti": str(uuid4()),
             "type": TokenType.ACCESS.value,
         }
 
-        return jwt.encode(payload,settings.JWT_SECRET_KEY,algorithm=cls.ALGORITHM,)
+        return jwt.encode(
+            payload,
+            settings.JWT_SECRET_KEY,
+            algorithm=cls.ALGORITHM,
+        )
 
     @classmethod
     def verify(

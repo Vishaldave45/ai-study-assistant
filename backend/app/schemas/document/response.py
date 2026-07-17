@@ -29,3 +29,20 @@ class DocumentCleanPreviewResponse(BaseSchema):
     characters: int
     words: int
     preview: str
+
+
+class DocumentChunkPreviewItem(BaseSchema):
+    index: int
+    preview: str
+
+
+class DocumentChunkResponse(BaseSchema):
+    total_chunks: int
+    average_tokens: int
+    chunks: list[DocumentChunkPreviewItem]
+
+
+class DocumentEmbedResponse(BaseSchema):
+    chunks: int
+    dimension: int
+    model: str

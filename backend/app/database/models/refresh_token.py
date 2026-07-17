@@ -63,7 +63,4 @@ class RefreshToken(
     )
 
     def __repr__(self) -> str:
-        return (
-            f"RefreshToken(id={self.id}, "
-            f"user_id={self.user_id})"
-        )
+        return f"RefreshToken(id={self.id}, " f"user_id={self.user_id})"

@@ -8,6 +8,7 @@ from .logout import (
     LogoutResponse,
 )
 from .token_payload import TokenPayload
+
 __all__ = [
     "RegisterRequest",
     "RegisterResponse",

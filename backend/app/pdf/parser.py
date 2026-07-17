@@ -11,7 +11,7 @@ class PDFParser:
 
     @classmethod
     def parse(cls, stream: bytes) -> ParsedPDF:
-        """Parses a PDF from a bytes stream and extracts metadata, page count, and text."""
+        """metadata, page count, and text."""
         doc = safe_open_pdf(stream)
         try:
             metadata = extract_metadata(doc)
@@ -22,7 +22,7 @@ class PDFParser:
             for page in doc:
                 page_text = page.get_text() or ""
                 text_pages.append(page_text)
-            
+
             combined_text = "\n".join(text_pages)
 
             return ParsedPDF(
@@ -42,4 +42,3 @@ class PDFParser:
             raise
         finally:
             doc.close()
-            

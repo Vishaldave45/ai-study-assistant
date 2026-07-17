@@ -12,6 +12,7 @@ class TextNormalizer:
         text = text.replace("\r\n", "\n").replace("\r", "\n")
 
         # Unicode normalization (NFKC decomposes ligatures and compatible structures)
+        # Unicode normalization (NFKC)
         text = unicodedata.normalize("NFKC", text)
 
         # Smart quotes map

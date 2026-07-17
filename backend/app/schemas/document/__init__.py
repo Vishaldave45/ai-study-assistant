@@ -1,4 +1,12 @@
 from .response import DocumentResponse, DocumentParsePreviewResponse, DocumentCleanPreviewResponse
+from .response import (
+    DocumentResponse,
+    DocumentParsePreviewResponse,
+    DocumentCleanPreviewResponse,
+    DocumentChunkPreviewItem,
+    DocumentChunkResponse,
+    DocumentEmbedResponse,
+)
 from .list import DocumentListResponse
 from .message import MessageResponse
 
@@ -8,4 +16,7 @@ __all__ = [
     "MessageResponse",
     "DocumentParsePreviewResponse",
     "DocumentCleanPreviewResponse",
+    "DocumentChunkPreviewItem",
+    "DocumentChunkResponse",
+    "DocumentEmbedResponse",
 ]

@@ -14,9 +14,7 @@ class RefreshTokenManager:
 
     @classmethod
     def hash(cls, token: str) -> str:
-        return hashlib.sha256(
-            token.encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
     @classmethod
     def verify(

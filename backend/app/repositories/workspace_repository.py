@@ -30,12 +30,9 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         self,
         workspace_id: UUID,
     ) -> Workspace | None:
-        statement = (
-            select(Workspace)
-            .where(
-                Workspace.id == workspace_id,
-                Workspace.deleted_at.is_(None),
-            )
+        statement = select(Workspace).where(
+            Workspace.id == workspace_id,
+            Workspace.deleted_at.is_(None),
         )
         result = self.db.execute(statement)
         return result.scalar_one_or_none()
@@ -60,13 +57,10 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         owner_id: UUID,
         name: str,
     ) -> Workspace | None:
-        statement = (
-            select(Workspace)
-            .where(
-                Workspace.owner_id == owner_id,
-                Workspace.name == name,
-                Workspace.deleted_at.is_(None),
-            )
+        statement = select(Workspace).where(
+            Workspace.owner_id == owner_id,
+            Workspace.name == name,
+            Workspace.deleted_at.is_(None),
         )
         result = self.db.execute(statement)
         return result.scalar_one_or_none()
@@ -107,12 +101,9 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         self,
         workspace_id: UUID,
     ) -> bool:
-        statement = (
-            select(Workspace)
-            .where(
-                Workspace.id == workspace_id,
-                Workspace.deleted_at.is_(None),
-            )
+        statement = select(Workspace).where(
+            Workspace.id == workspace_id,
+            Workspace.deleted_at.is_(None),
         )
         return self.db.execute(statement).first() is not None
 
@@ -169,9 +160,8 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         query: str | None = None,
         include_deleted: bool = False,
     ) -> int:
-        statement = (
-            select(func.count(Workspace.id))
-            .where(Workspace.owner_id == owner_id)
+        statement = select(func.count(Workspace.id)).where(
+            Workspace.owner_id == owner_id
         )
 
         if not include_deleted:

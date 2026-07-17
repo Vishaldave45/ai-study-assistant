@@ -15,6 +15,7 @@ from app.database.mixins import (
 if TYPE_CHECKING:
     from app.database.models.user import User
     from app.database.models.document import Document
+    from app.database.models.conversation import Conversation
 
 
 class Workspace(
@@ -58,8 +59,10 @@ class Workspace(
         cascade="all, delete-orphan",
     )
 
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
-        return (
-            f"Workspace(id={self.id}, "
-            f"name='{self.name}')"
-        )
+        return f"Workspace(id={self.id}, " f"name='{self.name}')"

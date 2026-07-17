@@ -15,10 +15,7 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
         token_hash: str,
     ) -> RefreshToken | None:
 
-        statement = (
-            select(RefreshToken)
-            .where(RefreshToken.token_hash == token_hash)
-        )
+        statement = select(RefreshToken).where(RefreshToken.token_hash == token_hash)
 
         result = self.db.execute(statement)
 
@@ -29,12 +26,9 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
         token_hash: str,
     ) -> RefreshToken | None:
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.token_hash == token_hash,
-                RefreshToken.revoked_at.is_(None),
-            )
+        statement = select(RefreshToken).where(
+            RefreshToken.token_hash == token_hash,
+            RefreshToken.revoked_at.is_(None),
         )
 
         result = self.db.execute(statement)
@@ -46,12 +40,9 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
         user_id,
     ) -> list[RefreshToken]:
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.user_id == user_id,
-                RefreshToken.revoked_at.is_(None),
-            )
+        statement = select(RefreshToken).where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
         )
 
         result = self.db.execute(statement)
@@ -87,12 +78,7 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
         current_time: datetime,
     ) -> int:
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.expires_at < current_time
-            )
-        )
+        statement = select(RefreshToken).where(RefreshToken.expires_at < current_time)
 
         tokens = self.db.execute(statement).scalars().all()
 

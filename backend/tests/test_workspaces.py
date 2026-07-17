@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database.base import Base
 from app.database.models.user import User
 from app.database.enums import UserStatus
-from app.services.workspace_service import WorkspaceService
+from app.services.workspace.workspace_service import WorkspaceService
 from app.schemas.workspace import (
     WorkspaceCreateRequest,
     WorkspaceUpdateRequest,
@@ -21,9 +21,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test_service.db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestWorkspaceServiceRefinement(unittest.TestCase):
@@ -86,7 +84,9 @@ class TestWorkspaceServiceRefinement(unittest.TestCase):
     def test_list_workspaces_pagination_and_sorting(self):
         # Create multiple workspaces for user 1
         for i in range(15):
-            req = WorkspaceCreateRequest(name=f"WS Pagination {i:02d}", description=f"Desc {i}")
+            req = WorkspaceCreateRequest(
+                name=f"WS Pagination {i:02d}", description=f"Desc {i}"
+            )
             self.service.create_workspace(self.user1_id, req)
 
         # Test page 1, size 10
@@ -106,9 +106,16 @@ class TestWorkspaceServiceRefinement(unittest.TestCase):
         self.assertEqual(workspaces_p2[0].name, "WS Pagination 10")
 
     def test_list_workspaces_search(self):
-        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Machine Learning"))
-        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Deep Learning", description="Neural Networks"))
-        self.service.create_workspace(self.user1_id, WorkspaceCreateRequest(name="Web Dev"))
+        self.service.create_workspace(
+            self.user1_id, WorkspaceCreateRequest(name="Machine Learning")
+        )
+        self.service.create_workspace(
+            self.user1_id,
+            WorkspaceCreateRequest(name="Deep Learning", description="Neural Networks"),
+        )
+        self.service.create_workspace(
+            self.user1_id, WorkspaceCreateRequest(name="Web Dev")
+        )
 
         # Search for 'learning'
         workspaces, total, _ = self.service.list_workspaces(
@@ -139,7 +146,9 @@ class TestWorkspaceServiceRefinement(unittest.TestCase):
         ws = self.service.create_workspace(self.user1_id, req)
 
         # Update description and name
-        update_req = WorkspaceUpdateRequest(name="WS Updated", description="New description")
+        update_req = WorkspaceUpdateRequest(
+            name="WS Updated", description="New description"
+        )
         updated = self.service.update_workspace(self.user1_id, ws.id, update_req)
         self.assertEqual(updated.name, "WS Updated")
         self.assertEqual(updated.description, "New description")

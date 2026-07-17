@@ -16,6 +16,11 @@ class TextCleaner:
         text = re.sub(r"[ \t]+", " ", text)
 
         # Collapse multiple blank lines (3 or more newlines) to exactly 2 newlines
+        lines = [line.strip() for line in text.split("\n")]
+        text = "\n".join(lines)
+
+        text = re.sub(r"[ \t]+", " ", text)
+
         text = re.sub(r"\n{3,}", "\n\n", text)
 
         return text.strip()

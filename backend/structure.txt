@@ -1,0 +1,241 @@
+.
+├── alembic
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions
+│       ├── 4cbcb0dc2567_initial_schema.py
+│       ├── 739065f3b7e4_create_document_chunks_table.py
+│       └── 91668ac4dbda_create_documents_table.py
+├── alembic.ini
+├── app
+│   ├── ai
+│   │   ├── chat
+│   │   │   └── __init__.py
+│   │   ├── explain
+│   │   │   └── __init__.py
+│   │   ├── flashcards
+│   │   │   └── __init__.py
+│   │   ├── graph
+│   │   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── quiz
+│   │   │   └── __init__.py
+│   │   └── summary
+│   │       └── __init__.py
+│   ├── api
+│   │   ├── deps.py
+│   │   ├── __init__.py
+│   │   └── v1
+│   │       ├── auth.py
+│   │       ├── documents.py
+│   │       ├── __init__.py
+│   │       ├── llm.py
+│   │       ├── rag.py
+│   │       └── workspace.py
+│   ├── chunking
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── pipeline.py
+│   │   ├── schemas.py
+│   │   ├── splitter.py
+│   │   └── tokenizer.py
+│   ├── core
+│   │   ├── config.py
+│   │   └── logging.py
+│   ├── database
+│   │   ├── base.py
+│   │   ├── enums.py
+│   │   ├── mixins.py
+│   │   ├── models
+│   │   │   ├── base_entity.py
+│   │   │   ├── document_chunk.py
+│   │   │   ├── document.py
+│   │   │   ├── __init__.py
+│   │   │   ├── refresh_token.py
+│   │   │   ├── user.py
+│   │   │   └── workspace.py
+│   │   └── session.py
+│   ├── dependencies
+│   │   ├── auth.py
+│   │   └── __init__.py
+│   ├── embedding
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── pipeline.py
+│   │   ├── provider.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   ├── .env
+│   ├── exceptions
+│   │   ├── auth.py
+│   │   ├── document.py
+│   │   ├── __init__.py
+│   │   └── workspace.py
+│   ├── llm
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── factory.py
+│   │   ├── gemini.py
+│   │   ├── __init__.py
+│   │   ├── provider.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   ├── main.py
+│   ├── pdf
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── metadata.py
+│   │   ├── parser.py
+│   │   ├── schemas.py
+│   │   └── utils.py
+│   ├── prompts
+│   │   ├── budget.py
+│   │   ├── builder.py
+│   │   ├── chat
+│   │   │   └── __init__.py
+│   │   ├── citations.py
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── flashcards
+│   │   │   └── __init__.py
+│   │   ├── formatter.py
+│   │   ├── __init__.py
+│   │   ├── quiz
+│   │   │   └── __init__.py
+│   │   ├── schemas.py
+│   │   ├── shared
+│   │   │   ├── budget.py
+│   │   │   ├── builder.py
+│   │   │   ├── citations.py
+│   │   │   ├── config.py
+│   │   │   ├── exceptions.py
+│   │   │   ├── formatter.py
+│   │   │   ├── __init__.py
+│   │   │   ├── schemas.py
+│   │   │   └── templates.py
+│   │   ├── summary
+│   │   │   └── __init__.py
+│   │   └── templates.py
+│   ├── rag
+│   │   ├── citations.py
+│   │   ├── config.py
+│   │   ├── context.py
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── orchestrator.py
+│   │   ├── pipeline.py
+│   │   ├── schemas.py
+│   │   ├── service.py
+│   │   └── utils.py
+│   ├── repositories
+│   │   ├── base.py
+│   │   ├── chunk_repository.py
+│   │   ├── document_repository.py
+│   │   ├── __init__.py
+│   │   ├── refresh_token_repository.py
+│   │   ├── user_repository.py
+│   │   └── workspace_repository.py
+│   ├── retrieval
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── filters.py
+│   │   ├── __init__.py
+│   │   ├── pipeline.py
+│   │   ├── provider.py
+│   │   ├── ranking.py
+│   │   ├── retriever.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   ├── schemas
+│   │   ├── auth
+│   │   │   ├── __init__.py
+│   │   │   ├── login.py
+│   │   │   ├── logout.py
+│   │   │   ├── refresh.py
+│   │   │   ├── register.py
+│   │   │   ├── token_payload.py
+│   │   │   ├── token.py
+│   │   │   └── user.py
+│   │   ├── base.py
+│   │   ├── document
+│   │   │   ├── chunk_schemas.py
+│   │   │   ├── __init__.py
+│   │   │   ├── list.py
+│   │   │   ├── message.py
+│   │   │   └── response.py
+│   │   └── workspace
+│   │       ├── create.py
+│   │       ├── __init__.py
+│   │       ├── list.py
+│   │       ├── message.py
+│   │       ├── response.py
+│   │       └── update.py
+│   ├── security
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── jwt_provider.py
+│   │   ├── password_hasher.py
+│   │   ├── refresh_token_manager.py
+│   │   └── token_types.py
+│   ├── services
+│   │   ├── auth
+│   │   │   ├── auth_service.py
+│   │   │   └── __init__.py
+│   │   ├── document
+│   │   │   ├── document_service.py
+│   │   │   ├── __init__.py
+│   │   │   └── processing_service.py
+│   │   ├── __init__.py
+│   │   └── workspace
+│   │       ├── __init__.py
+│   │       └── workspace_service.py
+│   ├── text
+│   │   ├── cleaner.py
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── normalizer.py
+│   │   ├── pipeline.py
+│   │   └── schemas.py
+│   ├── utils
+│   │   └── __init__.py
+│   ├── vectorstore
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── faiss_store.py
+│   │   ├── __init__.py
+│   │   ├── metadata_store.py
+│   │   ├── provider.py
+│   │   ├── repository.py
+│   │   ├── schemas.py
+│   │   ├── service.py
+│   │   └── utils.py
+│   └── workers
+│       └── __init__.py
+├── ARCHITECTURE.md
+├── .gitkeep
+├── pyproject.toml
+├── structure.txt
+├── test_chunking.db
+├── test_db.py
+├── test_embedding_db.db
+├── test_rag_db.db
+├── test_retrieval_db.db
+├── tests
+│   ├── test_chunking.py
+│   ├── test_embedding.py
+│   ├── test_llm.py
+│   ├── test_pdf_parser.py
+│   ├── test_prompts.py
+│   ├── test_rag.py
+│   ├── test_retrieval.py
+│   ├── test_text_processing.py
+│   ├── test_vectorstore.py
+│   └── test_workspaces.py
+├── test_service.db
+├── test_vectorstore_db.db
+└── uv.lock
+
+44 directories, 194 files
