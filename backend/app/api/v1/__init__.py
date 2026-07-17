@@ -6,6 +6,7 @@ from .documents import router as document_router
 from .llm import router as llm_router
 from .rag import router as rag_router
 from .chat import router as chat_conversations_router, chat_router as message_chat_router
+from .explain import router as explain_router
 
 api_router = APIRouter()
 
@@ -16,5 +17,7 @@ api_router.include_router(llm_router)
 api_router.include_router(rag_router)
 api_router.include_router(chat_conversations_router)
 api_router.include_router(message_chat_router)
+api_router.include_router(explain_router)
+
 
 
