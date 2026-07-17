@@ -14,3 +14,14 @@ class DocumentStatus(str, Enum):
     FAILED = "failed"
     EMBEDDING = "embedding"
     EMBEDDED = "embedded"
+
+
+class ConversationStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
+
+
+class MessageRole(str, Enum):
+    USER = "USER"
+    ASSISTANT = "ASSISTANT"
+    SYSTEM = "SYSTEM"

@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database.base import Base
 from app.database.models.user import User
 from app.database.enums import UserStatus
-from app.services.workspace_service import WorkspaceService
+from app.services.workspace.workspace_service import WorkspaceService
 from app.schemas.workspace import (
     WorkspaceCreateRequest,
     WorkspaceUpdateRequest,

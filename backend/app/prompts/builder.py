@@ -1,30 +1,32 @@
 import logging
-from app.prompts.config import MAX_CONTEXT_CHUNKS, MAX_PROMPT_TOKENS
-from app.prompts.templates import RAG_SYSTEM_PROMPT
-from app.prompts.formatter import ContextFormatter
-from app.prompts.budget import TokenBudgetManager
-from app.prompts.exceptions import PromptTooLargeError
+from app.prompts.shared.builder import PromptBuilder as SharedPromptBuilder
+from app.prompts.shared.templates import RAG_SYSTEM_PROMPT
+from app.prompts.shared.formatter import ContextFormatter
 
 logger = logging.getLogger(__name__)
 
 
-class PromptBuilder:
+class PromptBuilder(SharedPromptBuilder):
+    """
+    PromptBuilder extended to compile context chunks, conversation history,
+    and user queries within a token budget limit.
+    """
 
-    def __init__(
+    def build_with_history(
         self,
-        max_tokens: int = MAX_PROMPT_TOKENS,
-        max_chunks: int = MAX_CONTEXT_CHUNKS,
-    ):
-        self.max_chunks = max_chunks
-        self.budget_manager = TokenBudgetManager(max_tokens=max_tokens)
-
-    def build(self, query: str, chunks: list[dict]) -> str:
+        query: str,
+        chunks: list[dict],
+        history: list,
+    ) -> tuple[str, int]:
         """
-        Builds the final formatted RAG prompt.
-        Each dict inside chunks must contain:
-        - content: str
-        - filename: str
-        - page: str (optional)
+        Builds the final RAG prompt incorporating conversation memory.
+        
+        - query: The current question content.
+        - chunks: List of dicts, each containing 'content', 'filename', and optionally 'page'.
+        - history: Chronological list of message ORM objects or dicts (each having 'role' and 'content').
+        
+        Returns:
+            A tuple of (compiled prompt string, number of chunks actually used).
         """
         # 1. Format each chunk
         formatted_chunks = []
@@ -36,39 +38,39 @@ class PromptBuilder:
             )
             formatted_chunks.append(formatted)
 
-        # 2. Trim context chunks if they exceed the token budget
+        # 2. Format conversation history
+        history_lines = []
+        for msg in history:
+            role = getattr(msg, "role", "")
+            # Handle if role is an Enum or string
+            role_str = getattr(role, "value", str(role)).upper()
+            
+            if role_str == "USER":
+                history_lines.append(f"User: {msg.content}")
+            elif role_str == "ASSISTANT":
+                history_lines.append(f"Assistant: {msg.content}")
+            else:
+                history_lines.append(f"{role_str.capitalize()}: {msg.content}")
+
+        history_str = "\n".join(history_lines)
+
+        # 3. Trim context chunks using budget manager
+        # Construct the base prompt prefix with history to allocate budget correctly
+        combined_instruction = (
+            f"{RAG_SYSTEM_PROMPT}\n\n"
+            "=====================================\n"
+            "Conversation History\n"
+            "=====================================\n"
+            f"{history_str}"
+        )
+
         trimmed_chunks = self.budget_manager.trim_context(
-            system_prompt=RAG_SYSTEM_PROMPT,
+            system_prompt=combined_instruction,
             question=query,
             chunks_formatted=formatted_chunks,
         )
 
-        # If we had chunks, but none were accepted, check if the base query is already too large
-        if not trimmed_chunks and formatted_chunks:
-            base_prompt = (
-                "=====================================\n"
-                "System Instruction\n"
-                "=====================================\n"
-                f"{RAG_SYSTEM_PROMPT}\n\n"
-                "=====================================\n"
-                "Context\n"
-                "=====================================\n\n\n"
-                "=====================================\n"
-                "Question\n"
-                "=====================================\n"
-                f"{query}\n\n"
-                "=====================================\n"
-                "Assistant"
-            )
-            if (
-                self.budget_manager.count_tokens(base_prompt)
-                > self.budget_manager.max_tokens
-            ):
-                raise PromptTooLargeError(
-                    f"The query is too large to fit in the token budget of {self.budget_manager.max_tokens}."
-                )
-
-        # 3. Assemble components into the final prompt structure
+        # 4. Assemble the final prompt
         context_str = "\n---\n".join(trimmed_chunks)
 
         prompt = (
@@ -76,6 +78,10 @@ class PromptBuilder:
             "System Instruction\n"
             "=====================================\n"
             f"{RAG_SYSTEM_PROMPT}\n\n"
+            "=====================================\n"
+            "Conversation History\n"
+            "=====================================\n"
+            f"{history_str}\n\n"
             "=====================================\n"
             "Context\n"
             "=====================================\n"
@@ -87,4 +93,5 @@ class PromptBuilder:
             "=====================================\n"
             "Assistant"
         )
-        return prompt
+
+        return prompt, len(trimmed_chunks)

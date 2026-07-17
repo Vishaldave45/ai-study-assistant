@@ -109,16 +109,21 @@ class TestRAG(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_successful_rag_query(self):
+        from app.retrieval.models import RetrievalResult, RetrievedChunk
         # 1. Mock retriever to return one relevant chunk
-        mock_result = MagicMock()
-        mock_result.chunk_id = uuid4()
-        mock_result.document_id = self.doc_id
-        mock_result.score = 0.92
-        mock_result.content = "Neural Networks are inspired by the brain."
-
-        mock_search_response = MagicMock()
-        mock_search_response.results = [mock_result]
-        self.mock_retrieval_service.search.return_value = mock_search_response
+        chunk = RetrievedChunk(
+            chunk_id=str(uuid4()),
+            document_id=str(self.doc_id),
+            text="Neural Networks are inspired by the brain.",
+            score=0.92,
+            page=0,
+            chunk_index=0,
+            metadata={"original_filename": "ai_intro.pdf"}
+        )
+        self.mock_retrieval_service.retrieve.return_value = RetrievalResult(
+            query="Explain CNN",
+            chunks=[chunk]
+        )
 
         # 2. Mock LLM response
         self.mock_llm_service.generate.return_value = LLMResponse(
@@ -157,10 +162,12 @@ class TestRAG(unittest.TestCase):
         self.assertEqual(ctx.exception.status_code, 403)
 
     def test_no_relevant_chunks_returns_graceful_fallback(self):
+        from app.retrieval.models import RetrievalResult
         # Mock retriever to return no relevant chunks
-        mock_search_response = MagicMock()
-        mock_search_response.results = []
-        self.mock_retrieval_service.search.return_value = mock_search_response
+        self.mock_retrieval_service.retrieve.return_value = RetrievalResult(
+            query="Explain quantum physics",
+            chunks=[]
+        )
 
         service = RAGService(self.db)
         response = service.query(

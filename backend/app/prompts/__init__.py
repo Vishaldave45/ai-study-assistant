@@ -1,7 +1,7 @@
-from app.prompts.config import INCLUDE_CITATIONS, MAX_CONTEXT_CHUNKS, MAX_PROMPT_TOKENS
-from app.prompts.exceptions import PromptBuilderError, PromptTooLargeError
-from app.prompts.schemas import PromptRequest, PromptResponse
-from app.prompts.builder import PromptBuilder
+from app.prompts.shared.config import INCLUDE_CITATIONS, MAX_CONTEXT_CHUNKS, MAX_PROMPT_TOKENS
+from app.prompts.shared.exceptions import PromptBuilderError, PromptTooLargeError
+from app.prompts.shared.schemas import PromptRequest, PromptResponse
+from app.prompts.shared.builder import PromptBuilder
 
 __all__ = [
     "PromptBuilder",

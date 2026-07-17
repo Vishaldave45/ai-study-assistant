@@ -2,7 +2,7 @@ import logging
 from uuid import UUID
 from sqlalchemy.orm import Session
 
-from app.services.document_processing_service import DocumentProcessingService
+from app.services.document.processing_service import DocumentProcessingService
 from app.embedding.pipeline import EmbeddingPipeline
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.chunk_repository import ChunkRepository
@@ -89,3 +89,9 @@ class VectorStoreService:
     def delete_document_vectors(self, workspace_id: UUID, document_id: UUID) -> None:
         """Delete document vectors from index."""
         self.vector_repo.delete_document_vectors(workspace_id, document_id)
+
+    def get_vectors(
+        self, workspace_id: UUID, chunk_ids: list[UUID]
+    ) -> dict[UUID, list[float]]:
+        """Retrieve vector embeddings for chunks in workspace."""
+        return self.vector_repo.get_vectors(workspace_id, chunk_ids)

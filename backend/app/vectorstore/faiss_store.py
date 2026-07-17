@@ -226,3 +226,39 @@ class FAISSVectorStore(VectorStoreProvider):
             workspace_id
         )
         return index_path.exists() and metadata_path.exists()
+
+    def get_vectors(
+        self, workspace_id: UUID, chunk_ids: list[UUID]
+    ) -> dict[UUID, list[float]]:
+        """
+        Reconstruct vectors for a given list of chunk IDs from the FAISS index.
+        Uses Swig mapping arrays to query the underlying IndexFlatIP index.
+        """
+        index, metadata_store = self._ensure_loaded(workspace_id)
+
+        # Build mapping from chunk_id (as str) to custom vector_id (int)
+        chunk_to_custom_id = {}
+        for vid, meta in metadata_store.metadata.items():
+            c_id = meta.get("chunk_id")
+            if c_id:
+                chunk_to_custom_id[str(c_id)] = vid
+
+        # Get mapping from custom vector_id (int) to internal FAISS index (int)
+        custom_ids = faiss.vector_to_array(index.id_map)
+        custom_to_internal = {int(cid): i for i, cid in enumerate(custom_ids)}
+
+        result = {}
+        for chunk_id in chunk_ids:
+            cid = chunk_to_custom_id.get(str(chunk_id))
+            if cid is not None:
+                internal_idx = custom_to_internal.get(int(cid))
+                if internal_idx is not None:
+                    try:
+                        vector_np = index.index.reconstruct(int(internal_idx))
+                        result[chunk_id] = vector_np.tolist()
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to reconstruct vector for custom id {cid} "
+                            f"(internal {internal_idx}) in workspace {workspace_id}: {e}"
+                        )
+        return result

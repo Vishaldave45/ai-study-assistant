@@ -190,25 +190,24 @@ class TestRetrieval(unittest.TestCase):
         self.mock_embedding_service.generate_embeddings.return_value = [mock_emb]
 
         service = RetrievalService(self.db)
-        response = service.search(
+        response = service.retrieve(
             workspace_id=self.workspace_a_id,
             query="Neural networks",
-            top_k=2,
             min_score=0.0,
         )
 
         self.assertEqual(response.query, "Neural networks")
-        self.assertEqual(len(response.results), 2)
+        self.assertEqual(len(response.chunks), 2)
 
         # Verify ranking order: chunk_a1 is closer (first index 1.0 vs query 0.99)
-        self.assertEqual(response.results[0].chunk_id, self.chunk_a1_id)
-        self.assertEqual(response.results[0].content, self.chunk_a1.content)
+        self.assertEqual(response.chunks[0].chunk_id, str(self.chunk_a1_id))
+        self.assertEqual(response.chunks[0].text, self.chunk_a1.content)
 
-        self.assertEqual(response.results[1].chunk_id, self.chunk_a2_id)
-        self.assertEqual(response.results[1].content, self.chunk_a2.content)
+        self.assertEqual(response.chunks[1].chunk_id, str(self.chunk_a2_id))
+        self.assertEqual(response.chunks[1].text, self.chunk_a2.content)
 
-    def test_score_threshold_filtering(self):
-        # Query close to A1
+    def test_score_threshold_filtering_decoupled(self):
+        # In Sprint 1, core semantic retrieval returns all matches without filtering
         query_vec = [0.0] * 384
         query_vec[0] = 1.0
 
@@ -218,16 +217,13 @@ class TestRetrieval(unittest.TestCase):
 
         service = RetrievalService(self.db)
 
-        # Set high threshold (e.g. 0.8). Only A1 should pass, A2 (cosine 0.0) is discarded.
-        response = service.search(
+        response = service.retrieve(
             workspace_id=self.workspace_a_id,
             query="Neural networks",
-            top_k=2,
-            min_score=0.8,
+            min_score=0.0,
         )
 
-        self.assertEqual(len(response.results), 1)
-        self.assertEqual(response.results[0].chunk_id, self.chunk_a1_id)
+        self.assertEqual(len(response.chunks), 2)
 
     def test_workspace_isolation(self):
         # Query close to A1/B
@@ -241,28 +237,24 @@ class TestRetrieval(unittest.TestCase):
         service = RetrievalService(self.db)
 
         # Search Workspace A
-        response_a = service.search(
+        response_a = service.retrieve(
             workspace_id=self.workspace_a_id,
             query="Neural networks",
-            top_k=5,
-            min_score=0.1,
         )
         # Should not contain chunk_b
-        chunk_ids_a = [r.chunk_id for r in response_a.results]
-        self.assertIn(self.chunk_a1_id, chunk_ids_a)
-        self.assertNotIn(self.chunk_b_id, chunk_ids_a)
+        chunk_ids_a = [r.chunk_id for r in response_a.chunks]
+        self.assertIn(str(self.chunk_a1_id), chunk_ids_a)
+        self.assertNotIn(str(self.chunk_b_id), chunk_ids_a)
 
         # Search Workspace B
-        response_b = service.search(
+        response_b = service.retrieve(
             workspace_id=self.workspace_b_id,
             query="Neural networks",
-            top_k=5,
-            min_score=0.1,
         )
         # Should contain chunk_b, and not A1
-        chunk_ids_b = [r.chunk_id for r in response_b.results]
-        self.assertIn(self.chunk_b_id, chunk_ids_b)
-        self.assertNotIn(self.chunk_a1_id, chunk_ids_b)
+        chunk_ids_b = [r.chunk_id for r in response_b.chunks]
+        self.assertIn(str(self.chunk_b_id), chunk_ids_b)
+        self.assertNotIn(str(self.chunk_a1_id), chunk_ids_b)
 
     def test_empty_workspace_index(self):
         query_vec = [0.0] * 384
@@ -274,12 +266,11 @@ class TestRetrieval(unittest.TestCase):
         empty_workspace_id = uuid4()
         service = RetrievalService(self.db)
 
-        response = service.search(
+        response = service.retrieve(
             workspace_id=empty_workspace_id,
             query="test query",
-            top_k=5,
         )
-        self.assertEqual(response.results, [])
+        self.assertEqual(response.chunks, [])
 
 
 if __name__ == "__main__":

@@ -1,78 +1,71 @@
-import logging
 from uuid import UUID
-from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from app.database.models.document_chunk import DocumentChunk
-from app.embedding.service import EmbeddingService
-from app.retrieval.config import MAX_CONTEXT_CHUNKS, MIN_SCORE, TOP_K
+from app.retrieval.models import RetrievalResult
 from app.retrieval.pipeline import RetrievalPipeline
-from app.retrieval.schemas import SearchResponse, SearchResponseItem
-from app.vectorstore.repository import VectorStoreRepository
-
-logger = logging.getLogger(__name__)
+from app.retrieval.retrievers.semantic import SemanticRetriever
+from app.embedding.service import EmbeddingService
+from app.vectorstore.service import VectorStoreService
+from app.llm.service import LLMService
+from app.retrieval.config import MIN_SCORE
 
 
 class RetrievalService:
 
-    def __init__(self, db: Session):
-        self.db = db
-        self.vector_repo = VectorStoreRepository(db)
-        self.embedding_service = EmbeddingService()
-        self.pipeline = RetrievalPipeline(self.vector_repo, self.embedding_service)
+    def __init__(
+        self,
+        db: Session | None = None,
+        pipeline: RetrievalPipeline | None = None,
+    ):
+        if pipeline is not None:
+            self.pipeline = pipeline
+        elif db is not None:
+            embedding_service = EmbeddingService()
+            vectorstore_service = VectorStoreService(db)
+            llm_service = LLMService()
+            semantic_retriever = SemanticRetriever(
+                db=db,
+                embedding_service=embedding_service,
+                vectorstore_service=vectorstore_service,
+            )
+            self.pipeline = RetrievalPipeline(
+                semantic_retriever=semantic_retriever,
+                embedding_service=embedding_service,
+                vectorstore_service=vectorstore_service,
+                llm_service=llm_service,
+            )
+        else:
+            raise ValueError("Either db or pipeline must be provided.")
 
-    def search(
+    def retrieve(
         self,
         workspace_id: UUID,
         query: str,
-        top_k: int = TOP_K,
+        history: list | None = None,
+        use_mmr: bool = False,
+        lambda_val: float = 0.5,
         min_score: float = MIN_SCORE,
-        max_chunks: int = MAX_CONTEXT_CHUNKS,
-    ) -> SearchResponse:
-        """
-        Retrieves matching chunks for a user query in a workspace:
-        1. Generates query embedding
-        2. Performs FAISS search
-        3. Filters by score and sorts
-        4. Resolves text content from database
-        5. Returns structured SearchResponse preserving ranking
-        """
-        # 1. Run pipeline
-        results = self.pipeline.run_pipeline(
+        use_parent: bool = False,
+        parent_window_size: int = 1,
+        use_compression: bool = False,
+        top_k: int = 5,
+        max_tokens: int = 4000,
+    ) -> RetrievalResult:
+        chunks, context_text, citations = self.pipeline.run(
             workspace_id=workspace_id,
             query=query,
-            top_k=top_k,
+            history=history,
+            use_mmr=use_mmr,
+            lambda_val=lambda_val,
             min_score=min_score,
-            max_chunks=max_chunks,
+            use_parent=use_parent,
+            parent_window_size=parent_window_size,
+            use_compression=use_compression,
+            top_k=top_k,
+            max_tokens=max_tokens,
         )
-
-        if not results:
-            return SearchResponse(query=query, results=[])
-
-        # 2. Resolve chunk content from DB
-        chunk_ids = [res.chunk_id for res in results]
-        stmt = select(DocumentChunk).where(DocumentChunk.id.in_(chunk_ids))
-        db_chunks = self.db.execute(stmt).scalars().all()
-
-        # Map chunk ID to its content
-        chunk_map = {chunk.id: chunk.content for chunk in db_chunks}
-
-        # 3. Preserve FAISS order and assemble response items
-        response_items = []
-        for res in results:
-            content = chunk_map.get(res.chunk_id)
-            if content is None:
-                logger.warning(
-                    f"Chunk content not found in database for chunk_id {res.chunk_id}"
-                )
-                continue
-            response_items.append(
-                SearchResponseItem(
-                    chunk_id=res.chunk_id,
-                    document_id=res.document_id,
-                    score=res.score,
-                    content=content,
-                )
-            )
-
-        return SearchResponse(query=query, results=response_items)
+        return RetrievalResult(
+            query=query,
+            chunks=chunks,
+            context_text=context_text,
+            citations=citations,
+        )

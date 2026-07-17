@@ -31,8 +31,7 @@ class DocumentProcessingService:
         document_id: UUID,
     ) -> int:
         """
-        Process the document: Parse, Clean, Chunk, and Save to database.
-        Returns the number of chunks created.
+         Parse, Clean, Chunk, and Save to database
         """
         document = self.documents.get_by_id(document_id)
         if document is None:

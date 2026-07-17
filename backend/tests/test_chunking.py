@@ -12,7 +12,7 @@ from app.database.models.workspace import Workspace
 from app.database.models.document import Document
 from app.database.models.document_chunk import DocumentChunk
 from app.database.enums import UserStatus, DocumentStatus
-from app.services.document_processing_service import DocumentProcessingService
+from app.services.document.processing_service import DocumentProcessingService
 from app.repositories.chunk_repository import ChunkRepository
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_chunking.db"
@@ -73,7 +73,7 @@ class TestChunkingEngine(unittest.TestCase):
     def tearDown(self):
         self.db.close()
 
-    @patch("app.services.document_service.DocumentService.get_document_stream")
+    @patch("app.services.document.document_service.DocumentService.get_document_stream")
     def test_document_processing_pipeline(self, mock_get_stream):
         # Create a sample PDF in memory with multiple lines to prevent page width clipping
         doc = fitz.open()
@@ -111,7 +111,7 @@ class TestChunkingEngine(unittest.TestCase):
         self.db.refresh(self.document)
         self.assertEqual(self.document.status, DocumentStatus.READY)
 
-    @patch("app.services.document_service.DocumentService.get_document_stream")
+    @patch("app.services.document.document_service.DocumentService.get_document_stream")
     def test_reprocessing_deletes_old_chunks(self, mock_get_stream):
         # 1. First run
         doc = fitz.open()

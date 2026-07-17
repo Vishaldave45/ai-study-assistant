@@ -37,3 +37,8 @@ class VectorStoreRepository:
     def reset_workspace_index(self, workspace_id: UUID) -> None:
         self.store.reset(workspace_id)
         self.store.save(workspace_id)
+
+    def get_vectors(
+        self, workspace_id: UUID, chunk_ids: list[UUID]
+    ) -> dict[UUID, list[float]]:
+        return self.store.get_vectors(workspace_id, chunk_ids)

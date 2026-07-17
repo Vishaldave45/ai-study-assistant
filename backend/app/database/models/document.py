@@ -16,6 +16,7 @@ from app.database.mixins import (
 if TYPE_CHECKING:
     from app.database.models.workspace import Workspace
     from app.database.models.document_chunk import DocumentChunk
+    from app.database.models.conversation_document import ConversationDocument
 
 
 class Document(
@@ -68,6 +69,11 @@ class Document(
     )
 
     chunks: Mapped[list["DocumentChunk"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+    )
+
+    conversations: Mapped[list["ConversationDocument"]] = relationship(
         back_populates="document",
         cascade="all, delete-orphan",
     )

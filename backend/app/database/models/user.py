@@ -17,6 +17,7 @@ from app.database.mixins import (
 if TYPE_CHECKING:
     from app.database.models.refresh_token import RefreshToken
     from app.database.models.workspace import Workspace
+    from app.database.models.conversation import Conversation
 
 
 class User(
@@ -69,6 +70,11 @@ class User(
     )
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    conversations: Mapped[list["Conversation"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )

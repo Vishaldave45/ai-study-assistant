@@ -3,6 +3,10 @@ from .user import User
 from .workspace import Workspace
 from .document import Document
 from .document_chunk import DocumentChunk
+from .conversation import Conversation
+from .message import Message
+from .message_citation import MessageCitation
+from .conversation_document import ConversationDocument
 
 __all__ = [
     "User",
@@ -10,4 +14,8 @@ __all__ = [
     "RefreshToken",
     "Document",
     "DocumentChunk",
+    "Conversation",
+    "Message",
+    "MessageCitation",
+    "ConversationDocument",
 ]

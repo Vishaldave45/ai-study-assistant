@@ -207,8 +207,8 @@ class TestVectorStore(unittest.TestCase):
         results = self.store.search(self.workspace_id, query, top_k=5)
         self.assertEqual(results, [])
 
-    @patch("app.services.document_processing_service.PDFParser")
-    @patch("app.services.document_processing_service.TextProcessingPipeline")
+    @patch("app.services.document.processing_service.PDFParser")
+    @patch("app.services.document.processing_service.TextProcessingPipeline")
     @patch("app.embedding.models.SentenceTransformer")
     def test_service_indexing_flow(self, mock_transformer, mock_pipeline, mock_pdf):
         # Setup mocks
@@ -225,7 +225,7 @@ class TestVectorStore(unittest.TestCase):
 
         # Mock the document stream loader in DocumentService
         with patch(
-            "app.services.document_service.DocumentService.get_document_stream"
+            "app.services.document.document_service.DocumentService.get_document_stream"
         ) as mock_stream:
             mock_stream.return_value = MagicMock(getvalue=lambda: b"PDF Bytes")
 

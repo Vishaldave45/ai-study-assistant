@@ -31,9 +31,9 @@ class RAGPipeline:
         Coordinates the pipeline: retrieval -> prompt building -> LLM generation.
         """
         # 1. Retrieve chunks
-        logger.info(f"RAGPipeline: Executing search for workspace {workspace_id}")
+        logger.info(f"RAGPipeline: Executing retrieve for workspace {workspace_id}")
         try:
-            search_response = self.retrieval_service.search(
+            retrieval = self.retrieval_service.retrieve(
                 workspace_id=workspace_id,
                 query=question,
             )
@@ -41,24 +41,18 @@ class RAGPipeline:
             logger.error(f"RAGPipeline: Retriever query failed: {e}")
             raise RetrieverFailed(f"Retriever query failed: {str(e)}") from e
 
-        if not search_response.results:
-            logger.warning("RAGPipeline: No relevant chunks matched the threshold.")
+        if not retrieval.chunks:
+            logger.warning("RAGPipeline: No relevant chunks matched.")
             raise NoContextFound("No relevant context found.")
 
-        # 2. Resolve document original filenames from DB
-        doc_ids = {res.document_id for res in search_response.results}
-        stmt = select(Document).where(Document.id.in_(doc_ids))
-        docs = self.db.execute(stmt).scalars().all()
-        doc_map = {doc.id: doc.original_filename for doc in docs}
-
-        # 3. Format context chunks and citations
+        # 2. Format context chunks and citations using pre-resolved metadata
         chunks_for_builder = []
         citations = []
-        for res in search_response.results:
-            filename = doc_map.get(res.document_id, "Unknown Document")
+        for res in retrieval.chunks:
+            filename = res.metadata.get("original_filename", "Unknown Document")
             chunks_for_builder.append(
                 {
-                    "content": res.content,
+                    "content": res.text,
                     "filename": filename,
                     "page": "N/A",
                 }
