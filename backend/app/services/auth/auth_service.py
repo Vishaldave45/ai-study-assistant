@@ -17,16 +17,22 @@ from app.schemas.auth.login import (
     TokenResponse,
 )
 from app.schemas.auth.refresh import RefreshTokenRequest
+from app.schemas.auth.forgot_password import ForgotPasswordRequest
+from app.schemas.auth.reset_password import ResetPasswordRequest
 
 from app.security.password_hasher import PasswordHasher
 from app.security.jwt_provider import JWTProvider
 from app.security.refresh_token_manager import RefreshTokenManager
+from app.security.token_types import TokenType
+from app.security.exceptions import ExpiredTokenError, InvalidTokenError
 
 from app.exceptions.auth import (
     AccountNotVerifiedError,
     AccountSuspendedError,
     EmailAlreadyExistsError,
     InvalidCredentialsError,
+    UserNotFoundError,
+    InvalidResetTokenError,
 )
 
 
@@ -214,3 +220,47 @@ class AuthService:
         except Exception:
             self.db.rollback()
             raise
+
+    def forgot_password(
+        self,
+        request: ForgotPasswordRequest,
+    ) -> str:
+        user = self.users.get_by_email(request.email)
+        if user is None:
+            raise UserNotFoundError("User with this email does not exist.")
+
+        reset_token = JWTProvider.create_password_reset_token(user.id)
+
+        print("\n" + "=" * 80)
+        print(f" PASSWORD RESET REQUEST FOR EMAIL: {request.email}")
+        print(f" RESET TOKEN: {reset_token}")
+        print("=" * 80 + "\n")
+
+        return reset_token
+
+    def reset_password(
+        self,
+        request: ResetPasswordRequest,
+    ) -> None:
+        try:
+            payload = JWTProvider.verify(request.token)
+        except (ExpiredTokenError, InvalidTokenError) as exc:
+            raise InvalidResetTokenError(
+                "The password reset token is invalid or has expired."
+            ) from exc
+
+        if payload.type != TokenType.PASSWORD_RESET:
+            raise InvalidResetTokenError("Invalid token type.")
+
+        user = self.users.get_by_id(payload.sub)
+        if user is None:
+            raise UserNotFoundError("User not found.")
+
+        user.password_hash = PasswordHasher.hash(request.password)
+
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+

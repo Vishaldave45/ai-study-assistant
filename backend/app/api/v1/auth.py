@@ -17,6 +17,8 @@ from app.schemas.auth import (
     TokenResponse,
     LogoutRequest,
     LogoutResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
 )
 
 
@@ -27,6 +29,8 @@ from app.exceptions.auth import (
     InvalidCredentialsError,
     AccountNotVerifiedError,
     AccountSuspendedError,
+    UserNotFoundError,
+    InvalidResetTokenError,
 )
 
 from app.dependencies.auth import get_current_user
@@ -163,3 +167,44 @@ def me(
         "status": current_user.status.value,
         "verified": current_user.is_verified,
     }
+
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_200_OK,
+    summary="Request a password reset link/token",
+)
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    try:
+        service.forgot_password(request)
+        return {"message": "Password reset email sent."}
+    except UserNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_200_OK,
+    summary="Reset password using a token",
+)
+def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    try:
+        service.reset_password(request)
+        return {"message": "Password has been reset successfully."}
+    except (UserNotFoundError, InvalidResetTokenError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
