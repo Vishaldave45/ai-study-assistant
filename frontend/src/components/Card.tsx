@@ -4,7 +4,7 @@ interface CardProps {
   children: ReactNode;
 }
 
-function Card({ children }: CardProps) {
+export function Card({ children }: CardProps) {
   return (
     <div
       style={{
@@ -12,6 +12,7 @@ function Card({ children }: CardProps) {
         padding: '20px',
         borderRadius: '10px',
         marginBottom: '20px',
+        background: '#fff',
       }}
     >
       {children}
