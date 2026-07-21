@@ -83,27 +83,31 @@ export function ResetPassword() {
   };
 
   return (
-    <main aria-labelledby="reset-password-heading">
-      <section>
-        <h1 id="reset-password-heading">Reset Password</h1>
-        <p>Set a new password for your account.</p>
+    <div className="auth-page-container">
+      <main className="auth-card" aria-labelledby="reset-password-heading">
+        <header className="auth-header">
+          <h1 id="reset-password-heading">Reset Password</h1>
+          <p>Set a secure new password for your account.</p>
+        </header>
 
         {/* Display validation or API error states */}
         {(validationError || apiError) && (
-          <div role="alert" style={{ color: 'red', margin: '15px 0' }}>
+          <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
+            <span>⚠️</span>
             <p>{validationError || apiError}</p>
           </div>
         )}
 
         {/* Display success message */}
         {successMessage && (
-          <div role="status" style={{ color: 'green', margin: '15px 0' }}>
+          <div className="auth-alert info" role="status" style={{ marginBottom: '20px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', color: 'var(--text-success)' }}>
+            <span>✔️</span>
             <p>{successMessage}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-group">
             <label htmlFor="token">Reset Token</label>
             <input
               id="token"
@@ -113,17 +117,18 @@ export function ResetPassword() {
                 setToken(e.target.value);
                 if (validationError) setValidationError(null);
               }}
-              disabled={isLoading || !!tokenFromUrl} // Lock field if token is supplied via URL query
+              disabled={isLoading || !!tokenFromUrl}
               required
               placeholder="Paste token here if not in URL"
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label htmlFor="password">New Password (Min 8 characters)</label>
             <input
               id="password"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -135,11 +140,12 @@ export function ResetPassword() {
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label htmlFor="confirm-password">Confirm New Password</label>
             <input
               id="confirm-password"
               type="password"
+              placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
@@ -151,20 +157,20 @@ export function ResetPassword() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
+          <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Resetting...' : 'Update Password'}
           </button>
         </form>
 
-        <footer>
+        <footer className="auth-footer">
           <p>
             <Link to="/login" onClick={clearError}>
               Back to Login
             </Link>
           </p>
         </footer>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 

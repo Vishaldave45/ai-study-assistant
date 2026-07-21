@@ -58,38 +58,42 @@ export function Login() {
         email: email.trim(),
         password,
       });
-      // AuthProvider automatically updates state, triggering ProtectedRoute redirect
     } catch (err) {
       console.error('Login submit failed:', err);
     }
   };
 
   return (
-    <main aria-labelledby="login-heading">
-      <section>
-        <h1 id="login-heading">Welcome Back</h1>
-        <p>Log in to access your study assistant.</p>
+    <div className="auth-page-container">
+      <main className="auth-card" aria-labelledby="login-heading">
+        <header className="auth-header">
+          <h1 id="login-heading">Welcome Back</h1>
+          <p>Sign in to access your study assistant.</p>
+        </header>
 
         {/* Display validation or API error states */}
         {(validationError || apiError) && (
-          <div role="alert" style={{ color: 'red', margin: '15px 0' }}>
+          <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
+            <span>⚠️</span>
             <p>{validationError || apiError}</p>
           </div>
         )}
 
         {/* Display info messages e.g. successful registration redirects */}
         {infoMessage && (
-          <div role="status" style={{ color: 'blue', margin: '15px 0' }}>
+          <div className="auth-alert info" role="status" style={{ marginBottom: '20px' }}>
+            <span>ℹ️</span>
             <p>{infoMessage}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
               id="email"
               type="email"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -101,11 +105,12 @@ export function Login() {
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               id="password"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -117,12 +122,12 @@ export function Login() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
+          <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Logging in...' : 'Log In'}
           </button>
         </form>
 
-        <footer>
+        <footer className="auth-footer">
           <p>
             <Link to="/forgot-password" onClick={clearError}>
               Forgot password?
@@ -135,8 +140,8 @@ export function Login() {
             </Link>
           </p>
         </footer>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 
