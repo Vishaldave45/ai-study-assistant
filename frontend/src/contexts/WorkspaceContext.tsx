@@ -8,7 +8,7 @@ import type {
   WorkspaceDetail,
   WorkspaceCreateRequest,
   WorkspaceUpdateRequest,
-} from '../types/workspace';
+} from '../types/workspace.ts';
 
 interface WorkspaceContextType {
   workspaces: WorkspaceSummary[];
