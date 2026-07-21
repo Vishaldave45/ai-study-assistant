@@ -1,72 +1,93 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './hooks/useAuth';
+import { WorkspaceProvider } from './contexts/WorkspaceContext';
+import { useWorkspace } from './hooks/useWorkspace';
 import ProtectedRoute from './routes/ProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Heading from './components/Heading';
 import Card from './components/Card';
+import Sidebar from './components/Sidebar';
 
 /**
- * Placeholder Dashboard component.
- * Displays logged-in user profile attributes and trigger logout.
+ * Dashboard component displaying the main application view.
+ * Integrates Workspace Switcher Sidebar and displays active workspace details.
  */
 function Dashboard() {
-  const { user, logout, isLoading } = useAuth();
+  const { activeWorkspace, isLoading } = useWorkspace();
 
   return (
-    <main style={{ padding: '40px' }} aria-labelledby="dashboard-heading">
-      <Card>
-        <header>
-          <Heading title="📚 AI Study Assistant Dashboard" />
-          <h2 id="dashboard-heading">Welcome, {user?.full_name}!</h2>
-        </header>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fb' }}>
+      {/* Sidebar Component */}
+      <Sidebar />
 
-        <section>
-          <h3>Profile Overview</h3>
-          <ul>
-            <li><strong>Email:</strong> {user?.email}</li>
-            <li><strong>Status:</strong> {user?.status}</li>
-            <li><strong>Verified:</strong> {user?.is_verified ? 'Yes' : 'No'}</li>
-            <li><strong>Account ID:</strong> {user?.id}</li>
-          </ul>
-        </section>
+      {/* Main Workspace content */}
+      <main style={{ flex: 1, padding: '40px' }} aria-labelledby="workspace-detail-title">
+        {isLoading && !activeWorkspace ? (
+          <p>Loading workspace details...</p>
+        ) : activeWorkspace ? (
+          <Card>
+            <header>
+              <h1 id="workspace-detail-title">{activeWorkspace.name}</h1>
+              {activeWorkspace.description && (
+                <p style={{ color: '#555', fontStyle: 'italic', margin: '8px 0 16px 0' }}>
+                  {activeWorkspace.description}
+                </p>
+              )}
+            </header>
 
-        <footer>
-          <button onClick={logout} disabled={isLoading}>
-            {isLoading ? 'Logging out...' : 'Log Out'}
-          </button>
-        </footer>
-      </Card>
-    </main>
+            <section>
+              <p>Workspace ID: <code>{activeWorkspace.id}</code></p>
+              <p>Created: {new Date(activeWorkspace.created_at).toLocaleString()}</p>
+              <p>Last Updated: {new Date(activeWorkspace.updated_at).toLocaleString()}</p>
+            </section>
+            
+            <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
+
+            <section>
+              <h3>📚 Documents & Chat</h3>
+              <p style={{ color: '#888' }}>
+                We will mount the Document Manager and Chat Agent components here in the next modules.
+              </p>
+            </section>
+          </Card>
+        ) : (
+          <Card>
+            <h1>No Workspace Selected</h1>
+            <p>Please select a workspace from the sidebar or create a new one to begin studying.</p>
+          </Card>
+        )}
+      </main>
+    </div>
   );
 }
 
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Guest-only Routes */}
-          <Route element={<GuestRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-          </Route>
+      <WorkspaceProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Guest-only Routes */}
+            <Route element={<GuestRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-          </Route>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+            </Route>
 
-          {/* Fallback Redirection */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Fallback Redirection */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </WorkspaceProvider>
     </AuthProvider>
   );
 }
