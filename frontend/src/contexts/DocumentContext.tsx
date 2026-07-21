@@ -47,9 +47,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     return defaultMsg;
   };
 
-  /**
-   * Fetch documents for the active workspace.
-   */
+
   const fetchDocuments = useCallback(
     async (page: number = 1, query?: string) => {
       if (!activeWorkspace) {
@@ -79,7 +77,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * Upload document to the active workspace.
+   * Upload -active workspace
    */
   const uploadDocument = useCallback(
     async (file: File): Promise<DocumentItem> => {
@@ -108,7 +106,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * Delete a document.
+   * Delete 
    */
   const deleteDocument = useCallback(
     async (id: string) => {
@@ -116,7 +114,7 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
       setError(null);
       try {
         await documentApi.delete(id);
-        // Refresh list on current page (or page 1 if list becomes empty)
+        // Refresh list on current page 
         const targetPage = documents.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
         await fetchDocuments(targetPage);
       } catch (err) {
