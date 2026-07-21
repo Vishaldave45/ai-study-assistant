@@ -47,31 +47,36 @@ export function ForgotPassword() {
   };
 
   return (
-    <main aria-labelledby="forgot-password-heading">
-      <section>
-        <h1 id="forgot-password-heading">Recover Password</h1>
-        <p>Enter your email address and we'll log a reset token to the terminal.</p>
+    <div className="auth-page-container">
+      <main className="auth-card" aria-labelledby="forgot-password-heading">
+        <header className="auth-header">
+          <h1 id="forgot-password-heading">Recover Password</h1>
+          <p>Enter your email address to receive your recovery token.</p>
+        </header>
 
         {/* Display validation or API error states */}
         {(validationError || apiError) && (
-          <div role="alert" style={{ color: 'red', margin: '15px 0' }}>
+          <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
+            <span>⚠️</span>
             <p>{validationError || apiError}</p>
           </div>
         )}
 
         {/* Display success message */}
         {successMessage && (
-          <div role="status" style={{ color: 'green', margin: '15px 0' }}>
+          <div className="auth-alert info" role="status" style={{ marginBottom: '20px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', color: 'var(--text-success)' }}>
+            <span>✔️</span>
             <p>{successMessage}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
               id="email"
               type="email"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -83,20 +88,20 @@ export function ForgotPassword() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
+          <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Submitting...' : 'Send Reset Link'}
           </button>
         </form>
 
-        <footer>
+        <footer className="auth-footer">
           <p>
             <Link to="/login" onClick={clearError}>
               Back to Login
             </Link>
           </p>
         </footer>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 

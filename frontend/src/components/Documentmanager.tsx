@@ -3,7 +3,7 @@ import type { FormEvent, ChangeEvent } from 'react';
 import { useDocument } from '../hooks/useDocument';
 import type { DocumentItem } from '../types/document.ts';
 
-
+// Helper to format file sizes nicely
 function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -39,14 +39,14 @@ export function DocumentManager() {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-    
+      // Validation: Must be PDF
       if (file.type !== 'application/pdf') {
         setValidationError('Only PDF documents are supported.');
         setSelectedFile(null);
         return;
       }
       
-     
+      // Validation: Max 20MB
       if (file.size > 20 * 1024 * 1024) {
         setValidationError('File size exceeds the 20MB limit.');
         setSelectedFile(null);
@@ -71,7 +71,7 @@ export function DocumentManager() {
     try {
       await uploadDocument(selectedFile);
       setSelectedFile(null);
-     
+      // Reset file input element manually
       const fileInput = document.getElementById('pdf-file') as HTMLInputElement | null;
       if (fileInput) fileInput.value = '';
     } catch (err) {
@@ -117,10 +117,10 @@ export function DocumentManager() {
         </div>
       )}
 
-      {/* Upload and Search Grid */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '25px' }}>
         
-        {/* Upload Form Card */}
+        
         <div style={{ background: '#fafafa', padding: '16px', borderRadius: '6px', border: '1px dashed #ccc' }}>
           <form onSubmit={handleUploadSubmit}>
             <label htmlFor="pdf-file" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
