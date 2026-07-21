@@ -41,6 +41,28 @@ class JWTProvider:
         )
 
     @classmethod
+    def create_password_reset_token(
+        cls,
+        user_id: UUID,
+    ) -> str:
+
+        now = datetime.now(timezone.utc)
+
+        payload = {
+            "sub": str(user_id),
+            "iat": now,
+            "exp": now + timedelta(minutes=15),  # Reset tokens expire in 15 minutes
+            "jti": str(uuid4()),
+            "type": TokenType.PASSWORD_RESET.value,
+        }
+
+        return jwt.encode(
+            payload,
+            settings.JWT_SECRET_KEY,
+            algorithm=cls.ALGORITHM,
+        )
+
+    @classmethod
     def verify(
         cls,
         token: str,
