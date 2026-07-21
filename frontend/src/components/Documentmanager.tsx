@@ -117,10 +117,10 @@ export function DocumentManager() {
         </div>
       )}
 
-      {/* Upload and Search Grid */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '25px' }}>
         
-        {/* Upload Form Card */}
+        
         <div style={{ background: '#fafafa', padding: '16px', borderRadius: '6px', border: '1px dashed #ccc' }}>
           <form onSubmit={handleUploadSubmit}>
             <label htmlFor="pdf-file" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
