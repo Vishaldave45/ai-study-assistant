@@ -21,32 +21,32 @@ export const workspaceApi={
         sort_by?:'name'|'created_at'|'updated_at';
         sort_order?:'asc'|'desc';
     }):Promise<WorkSpaceListResponse>=>{
-        const response = await apiClient.get<WorkSpaceListResponse>('/workspace',{params});
+        const response = await apiClient.get<WorkSpaceListResponse>('/workspaces',{params});
         return response.data;
     },
 
     create:async(data:WorkspaceCreateRequest):Promise<WorkspaceDetails>=>{
-        const response = await apiClient.post<WorkspaceDetails>('/workspace',data);
+        const response = await apiClient.post<WorkspaceDetails>('/workspaces',data);
         return response.data;
     },
 
     get:async(workspaceId:string):Promise<WorkspaceDetails>=>{
-        const response=await apiClient.get<WorkspaceDetails>(`/workspace/${workspaceId}`);
+        const response=await apiClient.get<WorkspaceDetails>(`/workspaces/${workspaceId}`);
         return response.data;
     },
 
     update:async(workspaceId:string,data:WorkspaceUpdateRequest):Promise<WorkspaceDetails>=>{
-        const response = await apiClient.patch<WorkspaceDetails>(`/workspace/${workspaceId}`,data);
+        const response = await apiClient.patch<WorkspaceDetails>(`/workspaces/${workspaceId}`,data);
         return response.data;
     },
     
     delete:async(workspaceId:string):Promise<MessageResponse>=>{
-        const response = await apiClient.delete<MessageResponse>(`/workspace/${workspaceId}`);
+        const response = await apiClient.delete<MessageResponse>(`/workspaces/${workspaceId}`);
         return response.data;
     },
 
     summarize:async(workspaceId:string):Promise<WorkspaceSummary>=>{
-        const response=await apiClient.get<WorkspaceSummary>(`/workspace/${workspaceId}/summarize`);
+        const response=await apiClient.get<WorkspaceSummary>(`/workspaces/${workspaceId}/summarize`);
         return response.data;
     },
 

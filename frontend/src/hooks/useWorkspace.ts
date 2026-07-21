@@ -1,10 +1,7 @@
 import { useContext } from 'react';
 import { WorkspaceContext } from '../contexts/WorkspaceContext';
 
-/**
- * Custom hook to safely consume the WorkspaceContext.
- * Throws an error if used outside a WorkspaceProvider.
- */
+
 export function useWorkspace() {
   const context = useContext(WorkspaceContext);
   if (context === undefined) {

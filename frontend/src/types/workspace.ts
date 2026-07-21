@@ -10,7 +10,7 @@ export interface WorkspaceSummary {
 /**
  * Detailed representation of a workspace (includes timestamps).
  */
-export interface WorkspaceDetail {
+export interface WorkspaceDetails {
   id: string;
   name: string;
   description: string | null;
@@ -18,10 +18,7 @@ export interface WorkspaceDetail {
   updated_at: string;
 }
 
-/**
- * Detailed representation of a workspace (alternative name for API mapping).
- */
-export interface WorkspaceDetails extends WorkspaceDetail {}
+export interface WorkspaceDetail extends WorkspaceDetails {}
 
 /**
  * Request payload for creating a new workspace.
@@ -42,15 +39,10 @@ export interface WorkspaceUpdateRequest {
 /**
  * Paginated list container response returned by list endpoints.
  */
-export interface WorkspaceListResponse {
+export interface WorkSpaceListResponse {
   items: WorkspaceSummary[];
   page: number;
   page_size: number;
   total: number;
   total_pages: number;
 }
-
-/**
- * Paginated list container response (alternative case).
- */
-export interface WorkSpaceListResponse extends WorkspaceListResponse {}
