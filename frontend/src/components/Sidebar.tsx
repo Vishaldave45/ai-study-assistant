@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { useAuth } from '../hooks/useAuth';
-import { WorkspaceModal } from './WorkspaceModal';
+import { WorkspaceModal } from './WorkspaceModal.tsx';
 import type { WorkspaceSummary } from '../types/workspace.ts';
 
 export function Sidebar() {
