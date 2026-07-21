@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 *,
 *::before,
 *::after {
@@ -8,20 +10,22 @@
 
 /* Original Light-Theme Global Layout */
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: #f5f7fb;
   color: #222;
   min-height: 100vh;
   line-height: 1.5;
+}
+h1, h2, h3, h4 {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.02em; /* <-- Gives headers a sleek, compact feel */
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* ==========================================
-   Clean Matching Auth Styling (Light Theme)
-   ========================================== */
+
 
 .auth-page-container {
   display: flex;
@@ -34,7 +38,7 @@ body {
   color: #222;
 }
 
-/* Matching White Card */
+
 .auth-page-container .auth-card {
   background: #fff;
   border: 1px solid #ddd;
