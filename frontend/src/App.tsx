@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
+import { DocumentProvider } from './contexts/DocumentContext';
 import { useWorkspace } from './hooks/useWorkspace';
 import ProtectedRoute from './routes/ProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
@@ -10,6 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Card from './components/Card';
 import Sidebar from './components/Sidebar';
+import { DocumentManager } from './components/Documentmanager.tsx';
 
 /**
  * Dashboard component displaying the main application view.
@@ -47,10 +49,7 @@ function Dashboard() {
             <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
             <section>
-              <h3>📚 Documents & Chat</h3>
-              <p style={{ color: '#888' }}>
-                We will mount the Document Manager and Chat Agent components here in the next modules.
-              </p>
+              <DocumentManager />
             </section>
           </Card>
         ) : (
@@ -68,25 +67,27 @@ export function App() {
   return (
     <AuthProvider>
       <WorkspaceProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Guest-only Routes */}
-            <Route element={<GuestRoute />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-            </Route>
+        <DocumentProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Guest-only Routes */}
+              <Route element={<GuestRoute />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+              </Route>
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Dashboard />} />
-            </Route>
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Dashboard />} />
+              </Route>
 
-            {/* Fallback Redirection */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Fallback Redirection */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </DocumentProvider>
       </WorkspaceProvider>
     </AuthProvider>
   );
