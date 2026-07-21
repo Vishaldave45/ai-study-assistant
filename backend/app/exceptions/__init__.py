@@ -4,6 +4,8 @@ from .auth import (
     AuthError,
     EmailAlreadyExistsError,
     InvalidCredentialsError,
+    UserNotFoundError,
+    InvalidResetTokenError,
 )
 from .workspace import (
     WorkspaceError,
@@ -25,6 +27,8 @@ __all__ = [
     "InvalidCredentialsError",
     "AccountNotVerifiedError",
     "AccountSuspendedError",
+    "UserNotFoundError",
+    "InvalidResetTokenError",
     "WorkspaceError",
     "WorkspaceAlreadyExistsError",
     "WorkspaceNotFoundError",

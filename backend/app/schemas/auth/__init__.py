@@ -8,6 +8,8 @@ from .logout import (
     LogoutResponse,
 )
 from .token_payload import TokenPayload
+from .forgot_password import ForgotPasswordRequest
+from .reset_password import ResetPasswordRequest
 
 __all__ = [
     "RegisterRequest",
@@ -19,4 +21,6 @@ __all__ = [
     "LogoutRequest",
     "LogoutResponse",
     "TokenPayload",
+    "ForgotPasswordRequest",
+    "ResetPasswordRequest",
 ]

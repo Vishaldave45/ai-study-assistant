@@ -16,3 +16,11 @@ class AccountNotVerifiedError(AuthError):
 
 class AccountSuspendedError(AuthError):
     """Account suspended."""
+
+
+class UserNotFoundError(AuthError):
+    """User not found."""
+
+
+class InvalidResetTokenError(AuthError):
+    """Invalid or expired reset token."""
