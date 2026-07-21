@@ -23,26 +23,44 @@ export function Sidebar() {
   };
 
   return (
-    <aside style={{ width: '260px', borderRight: '1px solid #ccc', padding: '20px', background: '#fff', display: 'flex', flexDirection: 'column' }} aria-label="Sidebar navigation">
+    <aside 
+      style={{ 
+        width: '260px', 
+        borderRight: '1px solid #ccc', 
+        padding: '20px', 
+        background: '#fff', 
+        display: 'flex', 
+        flexDirection: 'column' 
+      }} 
+      aria-label="Sidebar navigation"
+    >
       <div>
         <h3>Hello, {user?.full_name}</h3>
-        <p style={{ fontSize: '0.85em', color: '#666', marginBottom: '20px' }}>{user?.email}</p>
+        <p style={{ fontSize: '0.85em', color: '#666', marginBottom: '20px' }}>
+          {user?.email}
+        </p>
       </div>
 
-      <nav aria-labelledby="workspaces-heading">
+      <nav aria-labelledby="workspaces-heading" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <h4 id="workspaces-heading" style={{ margin: 0 }}>Workspaces</h4>
           <button 
             onClick={() => openModal('create')} 
             aria-label="Create new workspace"
-            style={{ padding: '2px 8px', fontSize: '0.9em', cursor: 'pointer' }}
+            style={{ 
+              padding: '2px 8px', 
+              fontSize: '0.9em', 
+              cursor: 'pointer' 
+            }}
           >
             + Add
           </button>
         </div>
 
         {workspaces.length === 0 ? (
-          <p style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>No workspaces found.</p>
+          <p style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>
+            No workspaces found.
+          </p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0' }}>
             {workspaces.map((ws) => {
@@ -72,21 +90,29 @@ export function Sidebar() {
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent selecting the workspace when clicking edit
+                        e.stopPropagation();
                         openModal('edit', ws);
                       }}
                       aria-label={`Rename ${ws.name}`}
-                      style={{ padding: '2px 5px', fontSize: '0.8em', cursor: 'pointer' }}
+                      style={{ 
+                        padding: '2px 5px', 
+                        fontSize: '0.8em', 
+                        cursor: 'pointer' 
+                      }}
                     >
                       ✏️
                     </button>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent selecting the workspace when clicking delete
+                        e.stopPropagation();
                         openModal('delete', ws);
                       }}
                       aria-label={`Delete ${ws.name}`}
-                      style={{ padding: '2px 5px', fontSize: '0.8em', cursor: 'pointer' }}
+                      style={{ 
+                        padding: '2px 5px', 
+                        fontSize: '0.8em', 
+                        cursor: 'pointer' 
+                      }}
                     >
                       🗑️
                     </button>
@@ -101,13 +127,21 @@ export function Sidebar() {
       <footer style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #eee' }}>
         <button 
           onClick={logout} 
-          style={{ width: '100%', padding: '8px', background: '#ffebeb', border: '1px solid #ffd1d1', borderRadius: '4px', cursor: 'pointer', color: '#c00' }}
+          style={{ 
+            width: '100%', 
+            padding: '8px', 
+            background: '#ffebeb', 
+            border: '1px solid #ffd1d1', 
+            borderRadius: '4px', 
+            cursor: 'pointer', 
+            color: '#c00' 
+          }}
         >
           Log Out
         </button>
       </footer>
 
-      {/* Render the unified modals */}
+      {/* Render the modals */}
       {modalType && (
         <WorkspaceModal
           type={modalType}

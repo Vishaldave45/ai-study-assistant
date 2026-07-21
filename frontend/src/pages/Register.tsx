@@ -8,40 +8,37 @@ export function Register() {
   const navigate = useNavigate();
 
   // Form states
-  const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // Validation states
+
+  // Local validation states
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     setValidationError(null);
 
-    if (!email || !fullName || !password || !confirmPassword) {
+    // Empty fields check
+    if (!fullName || !email || !password || !confirmPassword) {
       setValidationError('All fields are required.');
       return false;
     }
 
-    if (fullName.trim().length < 2) {
-      setValidationError('Full name must be at least 2 characters long.');
-      return false;
-    }
-
-    // Simple email regex
+    // Email structure check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setValidationError('Please enter a valid email address.');
       return false;
     }
 
+    // Password length constraint check (minimum 8 characters as per standard security)
     if (password.length < 8) {
       setValidationError('Password must be at least 8 characters long.');
       return false;
     }
 
+    // Passwords match check
     if (password !== confirmPassword) {
       setValidationError('Passwords do not match.');
       return false;
@@ -53,7 +50,6 @@ export function Register() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     clearError();
-    setSuccessMessage(null);
 
     if (!validateForm()) {
       return;
@@ -66,49 +62,38 @@ export function Register() {
         password,
       });
 
-      setSuccessMessage('Registration successful! Redirecting to login...');
-      // Clear form
-      setEmail('');
-      setFullName('');
-      setPassword('');
-      setConfirmPassword('');
-      
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        navigate('/login', { state: { message: 'Registration successful. Please log in.' } });
-      }, 2000);
+      // Redirect to Login page with a success message state
+      navigate('/login', {
+        state: { message: 'Registration successful! Please log in with your credentials.' },
+      });
     } catch (err) {
-      // Errors are captured and set in the AuthContext, displayed via apiError
       console.error('Registration failed:', err);
     }
   };
 
   return (
-    <main aria-labelledby="register-heading">
-      <section>
-        <h1 id="register-heading">Create an Account</h1>
-        <p>Sign up to start organizing your study workspaces.</p>
+    <div className="auth-page-container">
+      <main className="auth-card" aria-labelledby="register-heading">
+        <header className="auth-header">
+          <h1 id="register-heading">Create Account</h1>
+          <p>Sign up to start parsing study materials.</p>
+        </header>
 
         {/* Display validation or API error states */}
         {(validationError || apiError) && (
-          <div role="alert" style={{ color: 'red', margin: '15px 0' }}>
+          <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
+            <span>⚠️</span>
             <p>{validationError || apiError}</p>
           </div>
         )}
 
-        {/* Display success messages */}
-        {successMessage && (
-          <div role="status" style={{ color: 'green', margin: '15px 0' }}>
-            <p>{successMessage}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-group">
             <label htmlFor="full-name">Full Name</label>
             <input
               id="full-name"
               type="text"
+              placeholder="John Doe"
               value={fullName}
               onChange={(e) => {
                 setFullName(e.target.value);
@@ -120,11 +105,12 @@ export function Register() {
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
               id="email"
               type="email"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -136,11 +122,12 @@ export function Register() {
             />
           </div>
 
-          <div>
-            <label htmlFor="password">Password (Min 8 characters)</label>
+          <div className="form-group">
+            <label htmlFor="password">Password (Min 8 chars)</label>
             <input
               id="password"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -152,11 +139,12 @@ export function Register() {
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label htmlFor="confirm-password">Confirm Password</label>
             <input
               id="confirm-password"
               type="password"
+              placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
@@ -168,12 +156,12 @@ export function Register() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Creating Account...' : 'Register'}
+          <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
-        <footer>
+        <footer className="auth-footer">
           <p>
             Already have an account?{' '}
             <Link to="/login" onClick={clearError}>
@@ -181,8 +169,8 @@ export function Register() {
             </Link>
           </p>
         </footer>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 

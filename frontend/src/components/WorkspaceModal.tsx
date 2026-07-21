@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useWorkspace } from '../hooks/useWorkspace';
+import { useWorkspace } from '../hooks/useWorkspace.ts';
 import type { WorkspaceSummary } from '../types/workspace.ts';
 
 interface WorkspaceModalProps {
@@ -81,7 +81,15 @@ export function WorkspaceModal({ type, workspace, onClose }: WorkspaceModalProps
         zIndex: 1000,
       }}
     >
-      <div style={{ background: '#fff', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+      <div 
+        style={{ 
+          background: '#fff', 
+          padding: '24px', 
+          borderRadius: '8px', 
+          width: '400px', 
+          maxWidth: '90%' 
+        }}
+      >
         <h3 id="modal-title" style={{ marginTop: 0 }}>
           {type === 'create' && 'Create Workspace'}
           {type === 'edit' && `Rename Workspace "${workspace?.name}"`}
@@ -134,7 +142,12 @@ export function WorkspaceModal({ type, workspace, onClose }: WorkspaceModalProps
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button type="button" onClick={onClose} disabled={isLoading} style={{ padding: '6px 12px', cursor: 'pointer' }}>
+            <button 
+              type="button" 
+              onClick={onClose} 
+              disabled={isLoading} 
+              style={{ padding: '6px 12px', cursor: 'pointer' }}
+            >
               Cancel
             </button>
             <button 
