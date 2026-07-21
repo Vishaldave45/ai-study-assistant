@@ -5,7 +5,7 @@ import type {
       WorkspaceDetails,
       WorkSpaceListResponse,
       WorkspaceSummary,
-} from '../types/workspace';
+} from '../types/workspace.ts';
 
 import type { MessageResponse } from "../types/auth";
 
