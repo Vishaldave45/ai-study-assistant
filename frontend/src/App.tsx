@@ -11,6 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Card from './components/Card';
 import Sidebar from './components/Sidebar';
+import { DocumentManager } from './components/Documentmanager.tsx';
 
 /**
  * Dashboard component displaying the main application view.
@@ -48,10 +49,7 @@ function Dashboard() {
             <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
             <section>
-              <h3>📚 Documents & Chat</h3>
-              <p style={{ color: '#888' }}>
-                We will mount the Document Manager and Chat Agent components here in the next modules.
-              </p>
+              <DocumentManager />
             </section>
           </Card>
         ) : (
