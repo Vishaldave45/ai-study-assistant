@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { FormEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { InputField, PasswordField } from '../components/FormField';
+import { loginSchema } from '../modules/Auth/validation-schema/login.schema';
+import type { LoginFormData } from '../modules/Auth/validation-schema/login.schema';
 
 interface LocationState {
   message?: string;
@@ -10,16 +14,17 @@ interface LocationState {
 export function Login() {
   const { login, error: apiError, isLoading, clearError } = useAuth();
   const location = useLocation();
-
-  // Form states
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  // Validation states
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  // Retrieve info message passed from Register redirects safely without "any"
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: 'onTouched',
+  });
+
   useEffect(() => {
     const state = location.state as LocationState | null;
     if (state?.message) {
@@ -27,36 +32,13 @@ export function Login() {
     }
   }, [location.state]);
 
-  const validateForm = (): boolean => {
-    setValidationError(null);
-
-    if (!email || !password) {
-      setValidationError('Please enter both your email and password.');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setValidationError('Please enter a valid email address.');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: LoginFormData) => {
     clearError();
     setInfoMessage(null);
-
-    if (!validateForm()) {
-      return;
-    }
-
     try {
       await login({
-        email: email.trim(),
-        password,
+        email: data.email.trim(),
+        password: data.password,
       });
     } catch (err) {
       console.error('Login submit failed:', err);
@@ -71,15 +53,13 @@ export function Login() {
           <p>Sign in to access your study assistant.</p>
         </header>
 
-        {/* Display validation or API error states */}
-        {(validationError || apiError) && (
+        {apiError && (
           <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
             <span>⚠️</span>
-            <p>{validationError || apiError}</p>
+            <p>{apiError}</p>
           </div>
         )}
 
-        {/* Display info messages e.g. successful registration redirects */}
         {infoMessage && (
           <div className="auth-alert info" role="status" style={{ marginBottom: '20px' }}>
             <span>ℹ️</span>
@@ -87,40 +67,29 @@ export function Login() {
           </div>
         )}
 
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="email"
-            />
-          </div>
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <InputField<LoginFormData>
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="name@example.com"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="email"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="current-password"
-            />
-          </div>
+          <PasswordField<LoginFormData>
+            name="password"
+            label="Password"
+            placeholder="••••••••"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="current-password"
+            required
+          />
 
           <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Logging in...' : 'Log In'}

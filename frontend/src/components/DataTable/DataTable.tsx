@@ -22,6 +22,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   title?: string;
   subtitle?: string;
+  emptyMessage?: string;
   isLoading?: boolean;
   
   // Server-side props (optional)
@@ -45,6 +46,7 @@ export function DataTable<TData, TValue>({
   data,
   title,
   subtitle,
+  emptyMessage,
   isLoading = false,
   isServerSide = false,
   pageCount: serverPageCount,
@@ -230,7 +232,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={tableColumns.length} className="empty-table-cell">
-                  {isLoading ? 'Loading records...' : 'No matching records found.'}
+                  {isLoading ? 'Loading records...' : emptyMessage || 'No matching records found.'}
                 </td>
               </tr>
             ) : (
