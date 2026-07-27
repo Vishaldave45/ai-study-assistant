@@ -1,68 +1,33 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { InputField, PasswordField } from '../components/FormField';
+import { registerSchema } from '../modules/Auth/validation-schema/register.schema';
+import type { RegisterFormData } from '../modules/Auth/validation-schema/register.schema';
 
 export function Register() {
-  const { register, error: apiError, isLoading, clearError } = useAuth();
+  const { register: authRegister, error: apiError, isLoading, clearError } = useAuth();
   const navigate = useNavigate();
 
-  // Form states
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: yupResolver(registerSchema),
+    mode: 'onTouched',
+  });
 
-  // Local validation states
-  const [validationError, setValidationError] = useState<string | null>(null);
-
-  const validateForm = (): boolean => {
-    setValidationError(null);
-
-    // Empty fields check
-    if (!fullName || !email || !password || !confirmPassword) {
-      setValidationError('All fields are required.');
-      return false;
-    }
-
-    // Email structure check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setValidationError('Please enter a valid email address.');
-      return false;
-    }
-
-    // Password length constraint check (minimum 8 characters as per standard security)
-    if (password.length < 8) {
-      setValidationError('Password must be at least 8 characters long.');
-      return false;
-    }
-
-    // Passwords match check
-    if (password !== confirmPassword) {
-      setValidationError('Passwords do not match.');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: RegisterFormData) => {
     clearError();
-
-    if (!validateForm()) {
-      return;
-    }
-
     try {
-      await register({
-        email: email.trim(),
-        full_name: fullName.trim(),
-        password,
+      await authRegister({
+        email: data.email.trim(),
+        full_name: data.full_name.trim(),
+        password: data.password,
       });
 
-      // Redirect to Login page with a success message state
       navigate('/login', {
         state: { message: 'Registration successful! Please log in with your credentials.' },
       });
@@ -79,82 +44,58 @@ export function Register() {
           <p>Sign up to start parsing study materials.</p>
         </header>
 
-        {/* Display validation or API error states */}
-        {(validationError || apiError) && (
+        {apiError && (
           <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
             <span>⚠️</span>
-            <p>{validationError || apiError}</p>
+            <p>{apiError}</p>
           </div>
         )}
 
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="full-name">Full Name</label>
-            <input
-              id="full-name"
-              type="text"
-              placeholder="John Doe"
-              value={fullName}
-              onChange={(e) => {
-                setFullName(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="name"
-            />
-          </div>
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <InputField<RegisterFormData>
+            name="full_name"
+            label="Full Name"
+            placeholder="John Doe"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="name"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="email"
-            />
-          </div>
+          <InputField<RegisterFormData>
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="name@example.com"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="email"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="password">Password (Min 8 chars)</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="new-password"
-            />
-          </div>
+          <PasswordField<RegisterFormData>
+            name="password"
+            label="Password (Min 8 chars)"
+            placeholder="••••••••"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="new-password"
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="confirm-password">Confirm Password</label>
-            <input
-              id="confirm-password"
-              type="password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="new-password"
-            />
-          </div>
+          <PasswordField<RegisterFormData>
+            name="confirm_password"
+            label="Confirm Password"
+            placeholder="••••••••"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="new-password"
+            required
+          />
 
           <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Creating Account...' : 'Sign Up'}

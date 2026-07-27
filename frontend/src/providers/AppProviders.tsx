@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { store } from '../redux/store';
 import { AuthProvider } from '../contexts/AuthContext';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import { DocumentProvider } from '../contexts/DocumentContext';
@@ -20,15 +22,17 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WorkspaceProvider>
-          <DocumentProvider>
-            <ChatProvider>{children}</ChatProvider>
-          </DocumentProvider>
-        </WorkspaceProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <WorkspaceProvider>
+            <DocumentProvider>
+              <ChatProvider>{children}</ChatProvider>
+            </DocumentProvider>
+          </WorkspaceProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </Provider>
   );
 }
 

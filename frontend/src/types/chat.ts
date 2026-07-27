@@ -13,6 +13,8 @@ export interface MessageItem {
   citations: CitationItem[];
 }
 
+export type ChatMessage = MessageItem;
+
 export interface ConversationItem {
   id: string;
   workspace_id: string;
