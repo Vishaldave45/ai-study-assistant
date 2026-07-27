@@ -16,6 +16,7 @@ import Sidebar from './components/Sidebar';
 import { DocumentManager } from './components/Documentmanager.tsx';
 import { ChatInterface } from './components/ChatInterface'; 
 import { SummaryGenerator } from './components/SummaryGenerator';
+import { TableDemo } from './components/DataTable/TableDemo';
 
 /**
  * Dashboard component displaying the main application view.
@@ -23,7 +24,7 @@ import { SummaryGenerator } from './components/SummaryGenerator';
  */
 function Dashboard() {
   const { activeWorkspace, isLoading } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries'>('documents');
+  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries' | 'table'>('documents');
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fb' }}>
@@ -100,6 +101,22 @@ function Dashboard() {
               >
                 📝 AI Summaries
               </button>
+              <button 
+                onClick={() => setActiveTab('table')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'table' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'table' ? 'bold' : 'normal',
+                  color: activeTab === 'table' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                📊 Smart Data Table
+              </button>
             </div>
 
             <section>
@@ -107,8 +124,10 @@ function Dashboard() {
                 <DocumentManager />
               ) : activeTab === 'chat' ? (
                 <ChatInterface />
-              ) : (
+              ) : activeTab === 'summaries' ? (
                 <SummaryGenerator />
+              ) : (
+                <TableDemo />
               )}
             </section>
           </Card>
