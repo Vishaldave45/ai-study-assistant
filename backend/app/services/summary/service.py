@@ -66,6 +66,15 @@ class SummaryService:
 
             # Load chunks for this document
             chunks = self.chunk_repo.list_by_document(document.id)
+            if not chunks:
+                try:
+                    from app.services.document.processing_service import DocumentProcessingService
+                    proc_service = DocumentProcessingService(self.db)
+                    proc_service.process_document(current_user_id, document.id)
+                    chunks = self.chunk_repo.list_by_document(document.id)
+                except Exception as exc:
+                    logger.warning(f"On-demand chunking failed for doc {document.id}: {exc}")
+
             for c in chunks:
                 chunks_for_builder.append(
                     {
@@ -85,6 +94,15 @@ class SummaryService:
 
             for doc in ready_docs:
                 chunks = self.chunk_repo.list_by_document(doc.id)
+                if not chunks:
+                    try:
+                        from app.services.document.processing_service import DocumentProcessingService
+                        proc_service = DocumentProcessingService(self.db)
+                        proc_service.process_document(current_user_id, doc.id)
+                        chunks = self.chunk_repo.list_by_document(doc.id)
+                    except Exception as exc:
+                        logger.warning(f"On-demand chunking failed for doc {doc.id}: {exc}")
+
                 for c in chunks:
                     chunks_for_builder.append(
                         {
