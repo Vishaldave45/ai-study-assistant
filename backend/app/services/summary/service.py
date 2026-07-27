@@ -132,9 +132,22 @@ class SummaryService:
 
         processing_time_ms = int((time.perf_counter() - start_time) * 1000)
 
+        token_usage = None
+        if llm_response.usage:
+            prompt = llm_response.usage.get("prompt_tokens") or llm_response.usage.get("prompt_token_count") or 0
+            completion = llm_response.usage.get("completion_tokens") or llm_response.usage.get("candidates_token_count") or 0
+            total = llm_response.usage.get("total_tokens") or llm_response.usage.get("total_token_count") or 0
+            if total == 0 and (prompt > 0 or completion > 0):
+                total = prompt + completion
+            token_usage = {
+                "prompt_tokens": prompt,
+                "completion_tokens": completion,
+                "total_tokens": total,
+            }
+
         return SummaryResponse(
             summary=llm_response.answer,
-            token_usage=llm_response.usage,
+            token_usage=token_usage,
             chunk_count=chunk_count,
             processing_time_ms=processing_time_ms,
             model=llm_response.model,
