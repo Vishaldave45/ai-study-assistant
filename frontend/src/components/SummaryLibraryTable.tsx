@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from './DataTable/DataTable';
 import { SummaryBookletModal } from './SummaryBookletModal';
@@ -10,7 +10,7 @@ interface SummaryLibraryTableProps {
   onDeleteSummaries: (ids: string[]) => void;
 }
 
-export function SummaryLibraryTable({
+export const SummaryLibraryTable = memo(function SummaryLibraryTable({
   summaries,
   onDeleteSummary,
   onDeleteSummaries,
@@ -207,4 +207,6 @@ export function SummaryLibraryTable({
       )}
     </div>
   );
-}
+});
+
+export default SummaryLibraryTable;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { SavedSummary } from '../types/summary';
 
 interface SummaryBookletModalProps {
@@ -9,7 +9,7 @@ interface SummaryBookletModalProps {
   selectedSummaries?: SavedSummary[];
 }
 
-export function SummaryBookletModal({
+export const SummaryBookletModal = memo(function SummaryBookletModal({
   isOpen,
   onClose,
   mode,
@@ -113,4 +113,6 @@ export function SummaryBookletModal({
       </div>
     </div>
   );
-}
+});
+
+export default SummaryBookletModal;

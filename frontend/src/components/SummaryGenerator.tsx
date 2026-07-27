@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import axios from 'axios';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { useDocument } from '../hooks/useDocument';
@@ -48,7 +48,7 @@ const TEMPLATE_OPTIONS: TemplateOption[] = [
   },
 ];
 
-export function SummaryGenerator() {
+export const SummaryGenerator = memo(function SummaryGenerator() {
   const { activeWorkspace } = useWorkspace();
   const { documents } = useDocument();
 
@@ -304,6 +304,6 @@ export function SummaryGenerator() {
       )}
     </div>
   );
-}
+});
 
 export default SummaryGenerator;

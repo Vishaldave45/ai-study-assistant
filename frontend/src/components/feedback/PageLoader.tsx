@@ -1,4 +1,6 @@
-export function PageLoader() {
+import { memo } from 'react';
+
+export const PageLoader = memo(function PageLoader() {
   return (
     <div
       style={{
@@ -24,6 +26,6 @@ export function PageLoader() {
       <p style={{ fontSize: '0.9rem' }}>Loading workspace components...</p>
     </div>
   );
-}
+});
 
 export default PageLoader;
