@@ -66,7 +66,7 @@ function Dashboard() {
                   outline: 'none'
                 }}
               >
-                📁 Files (TanStack Table)
+                📁 Files
               </button>
               <button 
                 onClick={() => setActiveTab('chat')}
