@@ -4,6 +4,7 @@ import { useWorkspace } from '../hooks/useWorkspace';
 import { useDocument } from '../hooks/useDocument';
 import { summaryApi } from '../api/summary';
 import { summaryStorage } from '../utils/summaryStorage';
+import { usageTracker } from '../utils/usageTracker';
 import { SummaryLibraryTable } from './SummaryLibraryTable';
 import type { SummaryTemplateType, SummaryResponse, SavedSummary } from '../types/summary';
 
@@ -118,6 +119,17 @@ export function SummaryGenerator() {
 
       const updatedList = summaryStorage.saveSummary(activeWorkspace.id, newSavedItem);
       setSavedSummaries(updatedList);
+
+      // Auto-log AI token & cost usage
+      usageTracker.logUsage(
+        activeWorkspace.id,
+        'AI Summarizer',
+        res.model || 'gemini-2.5-flash',
+        res.token_usage?.prompt_tokens || 0,
+        res.token_usage?.completion_tokens || 0,
+        res.processing_time_ms,
+        `Format: ${selectedTemplate} | Document: ${docName}`
+      );
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {

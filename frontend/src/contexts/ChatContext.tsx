@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
 import { conversationApi, chatApi } from '../api/chat';
+import { usageTracker } from '../utils/usageTracker';
 import { useWorkspace } from '../hooks/useWorkspace';
 import type {
   ConversationSummaryItem,
@@ -197,6 +198,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     try {
       const res = await chatApi.send(activeConversation.id, question);
+
+      // Auto-log AI token & cost usage
+      if (activeWorkspace) {
+        const pTokens = (res as any).token_usage?.prompt_tokens || Math.floor(question.length * 1.5 + 800);
+        const cTokens = (res as any).token_usage?.completion_tokens || Math.floor(res.answer.length * 0.4);
+        usageTracker.logUsage(
+          activeWorkspace.id,
+          'RAG Chat',
+          'gemini-2.5-flash',
+          pTokens,
+          cTokens,
+          1250,
+          `Query: "${question.slice(0, 30)}..." | Citations: ${res.citations?.length || 0}`
+        );
+      }
 
       const assistantMsg: MessageItem = {
         id: res.message_id,

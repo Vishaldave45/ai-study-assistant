@@ -16,6 +16,7 @@ import Sidebar from './components/Sidebar';
 import { DocumentManager } from './components/Documentmanager.tsx';
 import { ChatInterface } from './components/ChatInterface'; 
 import { SummaryGenerator } from './components/SummaryGenerator';
+import { AiUsageTable } from './components/AiUsageTable';
 
 /**
  * Dashboard component displaying the main application view.
@@ -23,7 +24,7 @@ import { SummaryGenerator } from './components/SummaryGenerator';
  */
 function Dashboard() {
   const { activeWorkspace, isLoading } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries'>('documents');
+  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries' | 'usage'>('documents');
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fb' }}>
@@ -100,6 +101,22 @@ function Dashboard() {
               >
                 📝 AI Summaries
               </button>
+              <button 
+                onClick={() => setActiveTab('usage')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'usage' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'usage' ? 'bold' : 'normal',
+                  color: activeTab === 'usage' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                ⚡ AI Usage
+              </button>
             </div>
 
             <section>
@@ -107,8 +124,10 @@ function Dashboard() {
                 <DocumentManager />
               ) : activeTab === 'chat' ? (
                 <ChatInterface />
-              ) : (
+              ) : activeTab === 'summaries' ? (
                 <SummaryGenerator />
+              ) : (
+                <AiUsageTable />
               )}
             </section>
           </Card>
