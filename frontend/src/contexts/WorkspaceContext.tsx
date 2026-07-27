@@ -1,8 +1,10 @@
-import { createContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { workspaceApi } from '../api/workspace';
 import { useAuth } from '../hooks/useAuth';
+import { useWorkspacesQuery } from '../hooks/useWorkspacesQuery';
 import type {
   WorkspaceSummary,
   WorkspaceDetail,
@@ -29,14 +31,25 @@ const ACTIVE_WORKSPACE_ID_KEY = 'ai_study_active_workspace_id';
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
-  const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
+  const queryClient = useQueryClient();
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceDetail | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(
+    () => localStorage.getItem(ACTIVE_WORKSPACE_ID_KEY)
+  );
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const [customError, setCustomError] = useState<string | null>(null);
 
-  const clearError = () => setError(null);
+  const {
+    workspaces,
+    isLoading: isListLoading,
+    error: listError,
+    createWorkspace: createWsMutation,
+    updateWorkspace: updateWsMutation,
+    deleteWorkspace: deleteWsMutation,
+  } = useWorkspacesQuery(isAuthenticated, searchQuery);
 
-  // Helper to extract Axios error messages safely
+  const clearError = useCallback(() => setCustomError(null), []);
+
   const getErrorMessage = (err: unknown, defaultMsg: string): string => {
     if (axios.isAxiosError(err)) {
       const data = err.response?.data;
@@ -51,159 +64,112 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return defaultMsg;
   };
 
-  /**
-   * Load workspaces from backend.
-   */
-  const fetchWorkspaces = async (query?: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await workspaceApi.list({ query, page_size: 100 }); // fetch up to 100 workspaces for selection list
-      setWorkspaces(res.items);
-      
-      // If we have an active workspace loaded but it's no longer in the list, clear it
-      if (activeWorkspace && !res.items.some((w) => w.id === activeWorkspace.id)) {
-        setActiveWorkspace(null);
-        localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
-      }
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to retrieve workspaces.'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchWorkspaces = useCallback(async (query?: string) => {
+    setSearchQuery(query);
+    await queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+  }, [queryClient]);
 
-  /**
-   * Select a workspace and load its full details.
-   */
-  const selectWorkspace = async (id: string | null) => {
+  const selectWorkspace = useCallback(async (id: string | null) => {
     if (!id) {
       setActiveWorkspace(null);
+      setActiveWorkspaceId(null);
       localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
     try {
-      const details = await workspaceApi.get(id);
+      setCustomError(null);
+      const details = await queryClient.fetchQuery({
+        queryKey: ['workspace', id],
+        queryFn: () => workspaceApi.get(id),
+      });
       setActiveWorkspace(details);
+      setActiveWorkspaceId(id);
       localStorage.setItem(ACTIVE_WORKSPACE_ID_KEY, id);
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to load workspace details.'));
+      setCustomError(getErrorMessage(err, 'Failed to load workspace details.'));
       setActiveWorkspace(null);
+      setActiveWorkspaceId(null);
       localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [queryClient]);
 
-  /**
-   * Create a new workspace.
-   */
-  const createWorkspace = async (data: WorkspaceCreateRequest): Promise<WorkspaceDetail> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const newWs = await workspaceApi.create(data);
-      // Refresh list
-      await fetchWorkspaces();
-      // Auto-select the newly created workspace
-      await selectWorkspace(newWs.id);
-      return newWs;
-    } catch (err) {
-      const errMsg = getErrorMessage(err, 'Failed to create workspace.');
-      setError(errMsg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Rename or update workspace.
-   */
-  const updateWorkspace = async (id: string, data: WorkspaceUpdateRequest): Promise<WorkspaceDetail> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const updatedWs = await workspaceApi.update(id, data);
-      await fetchWorkspaces();
-      if (activeWorkspace?.id === id) {
-        setActiveWorkspace(updatedWs);
+  const createWorkspace = useCallback(
+    async (data: WorkspaceCreateRequest): Promise<WorkspaceDetail> => {
+      setCustomError(null);
+      try {
+        const newWs = await createWsMutation(data);
+        await selectWorkspace(newWs.id);
+        return newWs;
+      } catch (err) {
+        const msg = getErrorMessage(err, 'Failed to create workspace.');
+        setCustomError(msg);
+        throw err;
       }
-      return updatedWs;
-    } catch (err) {
-      const errMsg = getErrorMessage(err, 'Failed to update workspace.');
-      setError(errMsg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [createWsMutation, selectWorkspace]
+  );
 
-  /**
-   * Delete a workspace.
-   */
-  const deleteWorkspace = async (id: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await workspaceApi.delete(id);
-      await fetchWorkspaces();
-      if (activeWorkspace?.id === id) {
-        setActiveWorkspace(null);
-        localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
+  const updateWorkspace = useCallback(
+    async (id: string, data: WorkspaceUpdateRequest): Promise<WorkspaceDetail> => {
+      setCustomError(null);
+      try {
+        const updated = await updateWsMutation({ id, data });
+        if (activeWorkspace?.id === id) {
+          setActiveWorkspace(updated);
+        }
+        return updated;
+      } catch (err) {
+        const msg = getErrorMessage(err, 'Failed to update workspace.');
+        setCustomError(msg);
+        throw err;
       }
-    } catch (err) {
-      const errMsg = getErrorMessage(err, 'Failed to delete workspace.');
-      setError(errMsg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [updateWsMutation, activeWorkspace]
+  );
 
-  // Re-hydrate last active workspace and load workspaces on login
+  const deleteWorkspace = useCallback(
+    async (id: string) => {
+      setCustomError(null);
+      try {
+        await deleteWsMutation(id);
+        if (activeWorkspace?.id === id) {
+          setActiveWorkspace(null);
+          setActiveWorkspaceId(null);
+          localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
+        }
+      } catch (err) {
+        const msg = getErrorMessage(err, 'Failed to delete workspace.');
+        setCustomError(msg);
+        throw err;
+      }
+    },
+    [deleteWsMutation, activeWorkspace]
+  );
+
+  // Auto select active workspace when workspaces list loads or changes
   useEffect(() => {
     if (!isAuthenticated) {
-      setWorkspaces([]);
       setActiveWorkspace(null);
+      setActiveWorkspaceId(null);
       localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
       return;
     }
 
-    const initWorkspaces = async () => {
-      setIsLoading(true);
-      try {
-        const res = await workspaceApi.list({ page_size: 100 });
-        setWorkspaces(res.items);
+    if (workspaces.length > 0 && !activeWorkspace) {
+      const targetId =
+        activeWorkspaceId && workspaces.some((w) => w.id === activeWorkspaceId)
+          ? activeWorkspaceId
+          : workspaces[0].id;
 
-        const lastActiveId = localStorage.getItem(ACTIVE_WORKSPACE_ID_KEY);
-        if (lastActiveId && res.items.some((w) => w.id === lastActiveId)) {
-          const details = await workspaceApi.get(lastActiveId);
-          setActiveWorkspace(details);
-        } else if (res.items.length > 0) {
-          // Default to first workspace if no cached workspace exists
-          const details = await workspaceApi.get(res.items[0].id);
-          setActiveWorkspace(details);
-          localStorage.setItem(ACTIVE_WORKSPACE_ID_KEY, res.items[0].id);
-        }
-      } catch (err) {
-        console.error('Failed to initialize workspaces:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      selectWorkspace(targetId);
+    }
+  }, [isAuthenticated, workspaces, activeWorkspace, activeWorkspaceId, selectWorkspace]);
 
-    initWorkspaces();
-  }, [isAuthenticated]);
-
-  // Listen to global logout to clear states immediately
   useEffect(() => {
     const handleGlobalLogout = () => {
-      setWorkspaces([]);
       setActiveWorkspace(null);
+      setActiveWorkspaceId(null);
       localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
     };
 
@@ -213,13 +179,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Memoize value to optimize rendering and prevent unnecessary triggers in children
+  const combinedError = customError || (listError ? getErrorMessage(listError, 'Failed to list workspaces.') : null);
+
   const contextValue = useMemo(
     () => ({
       workspaces,
       activeWorkspace,
-      isLoading,
-      error,
+      isLoading: isListLoading,
+      error: combinedError,
       fetchWorkspaces,
       selectWorkspace,
       createWorkspace,
@@ -227,7 +194,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       deleteWorkspace,
       clearError,
     }),
-    [workspaces, activeWorkspace, isLoading, error]
+    [
+      workspaces,
+      activeWorkspace,
+      isListLoading,
+      combinedError,
+      fetchWorkspaces,
+      selectWorkspace,
+      createWorkspace,
+      updateWorkspace,
+      deleteWorkspace,
+      clearError,
+    ]
   );
 
   return (
@@ -236,3 +214,5 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     </WorkspaceContext.Provider>
   );
 }
+
+export default WorkspaceContext;

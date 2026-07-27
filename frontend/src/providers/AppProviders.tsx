@@ -6,6 +6,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import { DocumentProvider } from '../contexts/DocumentContext';
 import { ChatProvider } from '../contexts/ChatContext';
+import ErrorBoundary from '../components/feedback/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,17 +23,19 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <WorkspaceProvider>
-            <DocumentProvider>
-              <ChatProvider>{children}</ChatProvider>
-            </DocumentProvider>
-          </WorkspaceProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <WorkspaceProvider>
+              <DocumentProvider>
+                <ChatProvider>{children}</ChatProvider>
+              </DocumentProvider>
+            </WorkspaceProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 

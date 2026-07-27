@@ -1,46 +1,36 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { InputField } from '../components/FormField';
+import { forgotPasswordSchema } from '../modules/Auth/validation-schema/forgot-password.schema';
+import type { ForgotPasswordFormData } from '../modules/Auth/validation-schema/forgot-password.schema';
 
 export function ForgotPassword() {
   const { forgotPassword, error: apiError, isLoading, clearError } = useAuth();
-  const [email, setEmail] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const validateForm = (): boolean => {
-    setValidationError(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: yupResolver(forgotPasswordSchema),
+    mode: 'onTouched',
+  });
 
-    if (!email) {
-      setValidationError('Please enter your email address.');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setValidationError('Please enter a valid email address.');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     clearError();
     setSuccessMessage(null);
 
-    if (!validateForm()) {
-      return;
-    }
-
     try {
-      await forgotPassword({ email: email.trim() });
+      await forgotPassword({ email: data.email.trim() });
       setSuccessMessage(
         'Password reset request submitted. Check the backend server terminal logs for your reset token!'
       );
-      setEmail('');
+      reset();
     } catch (err) {
       console.error('Forgot password request failed:', err);
     }
@@ -54,39 +44,41 @@ export function ForgotPassword() {
           <p>Enter your email address to receive your recovery token.</p>
         </header>
 
-        {/* Display validation or API error states */}
-        {(validationError || apiError) && (
+        {apiError && (
           <div className="auth-alert error" role="alert" style={{ marginBottom: '20px' }}>
             <span>⚠️</span>
-            <p>{validationError || apiError}</p>
+            <p>{apiError}</p>
           </div>
         )}
 
-        {/* Display success message */}
         {successMessage && (
-          <div className="auth-alert info" role="status" style={{ marginBottom: '20px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', color: 'var(--text-success)' }}>
+          <div
+            className="auth-alert info"
+            role="status"
+            style={{
+              marginBottom: '20px',
+              background: 'rgba(52, 211, 153, 0.1)',
+              border: '1px solid rgba(52, 211, 153, 0.2)',
+              color: 'var(--text-success)',
+            }}
+          >
             <span>✔️</span>
             <p>{successMessage}</p>
           </div>
         )}
 
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (validationError) setValidationError(null);
-              }}
-              disabled={isLoading}
-              required
-              autoComplete="email"
-            />
-          </div>
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <InputField<ForgotPasswordFormData>
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="name@example.com"
+            register={register}
+            errors={errors}
+            disabled={isLoading}
+            autoComplete="email"
+            required
+          />
 
           <button type="submit" className="auth-btn" disabled={isLoading} style={{ marginTop: '10px' }}>
             {isLoading ? 'Submitting...' : 'Send Reset Link'}
