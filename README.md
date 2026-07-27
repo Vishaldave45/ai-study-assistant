@@ -2,15 +2,19 @@
 
 # 📚 AI Study Assistant
 
-### AI-powered document understanding platform built with **FastAPI**, **FAISS**, and **Google Gemini**
+### AI-powered study & document understanding platform built with **React**, **FastAPI**, **TanStack Table**, **FAISS**, and **Google Gemini**
 
-Upload study materials, organize them into workspaces, and interact with your documents using Retrieval-Augmented Generation (RAG).
+Upload study materials, organize them into workspaces, inspect documents with smart data tables, generate AI summaries & master revision booklets, track token costs, and interact with your documents using Retrieval-Augmented Generation (RAG).
 
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178C6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-8.1+-646CFF?logo=vite)
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red)
-![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-blueviolet)
-![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google)
+![TanStack](https://img.shields.io/badge/TanStack-Table%20%26%20Query-FF4154)
+![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?logo=redux)
+![Vitest](https://img.shields.io/badge/Vitest-Unit%20Testing-6E9F18?logo=vitest)
+![Playwright](https://img.shields.io/badge/Playwright-E2E%20Testing-2EAD33?logo=playwright)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 </div>
@@ -19,149 +23,87 @@ Upload study materials, organize them into workspaces, and interact with your do
 
 # ✨ Overview
 
-AI Study Assistant is a backend system that enables students to upload study materials and ask questions grounded in those documents.
+**AI Study Assistant** is an enterprise-grade full-stack platform that enables students and researchers to upload study materials and ask grounded questions using Retrieval-Augmented Generation (RAG).
 
-The platform follows a modular architecture and implements a complete Retrieval-Augmented Generation (RAG) pipeline including document ingestion, semantic retrieval, prompt construction, and LLM-powered responses.
+The platform features an **Enterprise React Frontend** with modular domain architecture (`src/modules/`), headless TanStack Data Tables with server-side/client-side mode, React Hook Form + Yup schema validation, Redux Toolkit, base Axios client wrappers, and complete Vitest + Playwright test suites.
 
 ---
 
 # 🚀 Features
 
-## Authentication
-
-- JWT Authentication
-- Access & Refresh Tokens
-- Password Hashing
-- Protected Routes
+## 🔐 Authentication & Security
+- JWT Authentication (Access & Refresh Tokens with silent auto-refresh interceptors)
+- Password Hashing & Protected Route Guards
+- React Hook Form + Yup schema validation (`loginSchema`, `registerSchema`)
 
 ---
 
-## Workspace Management
-
-- Create Workspace
-- Update Workspace
-- Delete Workspace
-- Manage Documents
+## 📁 Smart Data Table Document Management
+- Powered by **@tanstack/react-table** (v8)
+- Global text search, per-column text filtering, multi-column sorting, row selection checkboxes, and pagination
+- Document preview, metadata inspection, and deletion
 
 ---
 
-## Document Processing
-
-- PDF Upload
-- PDF Parsing
-- Text Cleaning
-- Text Normalization
-- Metadata Extraction
+## 📝 AI Summaries Library & Master Revision Booklet Exporter
+- Automatic summary generation for uploaded workspace documents
+- **Summaries Library Table** with format filtering (`PDF`, `DOCX`, `TXT`, `MD`), title search, and date sorting
+- **Master Revision Booklet Exporter**: Select multiple summaries and export them as a single compiled Markdown booklet (`.md`) or copy to clipboard
 
 ---
 
-## Text Pipeline
-
-- Intelligent Chunking
-- Configurable Chunk Size
-- Tokenization
-- Pre-processing
+## ⚡ AI Usage & Token Analytics Table
+- Real-time token consumption logger for RAG Chat & AI Summarizer
+- KPI metrics summary cards: **Total Queries**, **Total Tokens Used**, **Estimated Cost ($)**, and **Avg Latency (ms)**
+- Granular token log table with model tracking (`gemini-2.5-flash`)
 
 ---
 
-## AI Pipeline
-
-- Embedding Generation
-- FAISS Vector Storage
-- Semantic Retrieval
-- Prompt Builder
-- Google Gemini Integration
-- Retrieval-Augmented Generation (RAG)
-
----
-
-## Backend Architecture
-
-- FastAPI
-- SQLAlchemy ORM
-- Alembic
-- Repository Pattern
-- Dependency Injection
-- Modular Services
-- Pydantic Validation
+## 💬 Retrieval-Augmented Generation (RAG) Chat
+- Multi-session chat conversations with history persistence
+- Paginated message loading powered by TanStack Query (`useChatInfiniteQuery`)
+- Citations & document page references for every AI answer
 
 ---
 
 # 🏗 System Architecture
 
 ```text
-                     Client
-                        │
-                        ▼
-                  FastAPI Server
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
- Authentication   Workspace API    Document API
-                                          │
-                                          ▼
-                                   Upload PDF
-                                          │
-                                          ▼
-                                    PDF Parser
-                                          │
-                                          ▼
-                               Text Processing
-                                          │
-                                          ▼
-                                     Chunking
-                                          │
-                                          ▼
-                               Embedding Service
-                                          │
-                                          ▼
-                                 FAISS Vector DB
-                                          │
-                                          ▼
-                                 Semantic Retrieval
-                                          │
-                                          ▼
-                                  Prompt Builder
-                                          │
-                                          ▼
-                                    Gemini LLM
-                                          │
-                                          ▼
-                                   AI Response
-```
-
----
-
-# 🔄 RAG Pipeline
-
-```mermaid
-flowchart TD
-
-A[Upload PDF]
-B[Extract Text]
-C[Clean & Normalize]
-D[Chunk Document]
-E[Generate Embeddings]
-F[Store in FAISS]
-G[User Question]
-H[Embed Query]
-I[Retrieve Top Chunks]
-J[Build Prompt]
-K[Gemini]
-L[Grounded Response]
-
-A --> B
-B --> C
-C --> D
-D --> E
-E --> F
-G --> H
-H --> I
-F --> I
-I --> J
-J --> K
-K --> L
+               React Frontend (Vite + TypeScript)
+                               │
+               ┌───────────────┴───────────────┐
+               ▼                               ▼
+       TanStack Query / Table           Redux Toolkit / Axios
+               │                               │
+               └───────────────┬───────────────┘
+                               │ (REST API / Bearer JWT)
+                               ▼
+                        FastAPI Server
+                               │
+       ┌───────────────────────┼───────────────────────┐
+       ▼                       ▼                       ▼
+Authentication           Workspace API           Document API
+                                                       │
+                                                       ▼
+                                                PDF/Doc Ingestion
+                                                       │
+                                                       ▼
+                                                Text Processing & Chunking
+                                                       │
+                                                       ▼
+                                                Embedding Service
+                                                       │
+                                                       ▼
+                                                FAISS Vector DB
+                                                       │
+                                                       ▼
+                                              Semantic Retrieval (MMR)
+                                                       │
+                                                       ▼
+                                                Google Gemini LLM
+                                                       │
+                                                       ▼
+                                                Grounded Response
 ```
 
 ---
@@ -169,208 +111,119 @@ K --> L
 # 📂 Project Structure
 
 ```text
-backend/
+ai-study-assistant/
+├── backend/
+│   ├── alembic/              # Database migration scripts
+│   ├── app/                  # FastAPI backend application
+│   │   ├── api/v1/           # REST endpoints (auth, workspace, document, chat, summary)
+│   │   ├── core/             # Pydantic Settings & security config
+│   │   ├── database/         # SQLAlchemy session & models
+│   │   ├── rag/              # Vector store, chunking, FAISS retriever, prompts
+│   │   └── services/         # Business logic services
+│   └── tests/                # Pytest test suite (138 tests)
 │
-├── alembic/
-│
-├── app/
-│   ├── ai/
-│   ├── api/
-│   ├── chunking/
-│   ├── core/
-│   ├── database/
-│   ├── dependencies/
-│   ├── embedding/
-│   ├── exceptions/
-│   ├── llm/
-│   ├── pdf/
-│   ├── prompts/
-│   ├── rag/
-│   ├── repositories/
-│   ├── retrieval/
-│   ├── schemas/
-│   ├── security/
-│   ├── services/
-│   ├── storage/
-│   ├── text/
-│   ├── utils/
-│   ├── vectorstore/
-│   └── workers/
-│
-├── tests/
-├── storage/
-└── pyproject.toml
+└── frontend/
+    ├── e2e/                  # Playwright E2E test specs (auth.spec.ts, documents.spec.ts)
+    ├── src/
+    │   ├── api/              # Axios & TanStack Query services
+    │   ├── base-axios/       # Standardized Axios client & ExtendedResponse wrappers
+    │   ├── components/       # Reusable primitives (Button, Modal, ErrorBoundary, DataTable, FormField)
+    │   ├── constants/        # HTTP status & navigation route constants
+    │   ├── contexts/         # React Context API (Auth, Workspace, Document, Chat)
+    │   ├── hooks/            # Custom hooks (useAxios, useChatInfiniteQuery, useAuth, useWorkspace)
+    │   ├── modules/          # Domain feature modules (Auth, Documents, Chat, Summary, Analytics)
+    │   ├── pages/            # Lazy-loaded route pages (Login, Register, ForgotPassword, ResetPassword)
+    │   ├── providers/        # AppProviders wrapping Redux, QueryClient, and Contexts
+    │   ├── redux/            # Redux Toolkit store & slices (authSlice, workspaceSlice, uiSlice)
+    │   ├── styles/           # Global CSS variables & modern design system
+    │   └── test/             # Vitest test setup and unit test specs
+    ├── playwright.config.ts  # Playwright E2E configuration
+    └── vitest.config.ts      # Vitest unit test configuration
 ```
 
 ---
 
 # 🛠 Tech Stack
 
-| Category | Technologies |
-|-----------|--------------|
-| Language | Python 3.12 |
-| Framework | FastAPI |
-| ORM | SQLAlchemy |
-| Validation | Pydantic |
-| Database | SQLite / PostgreSQL |
-| Migrations | Alembic |
-| Vector Store | FAISS |
-| Embeddings | Sentence Transformers |
-| LLM | Google Gemini |
-| Authentication | JWT |
-| Testing | Pytest |
+| Layer | Technologies |
+|---|---|
+| **Frontend Core** | React 19, TypeScript, Vite 8 |
+| **State Management** | Redux Toolkit (`@reduxjs/toolkit`), React Context API |
+| **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8) |
+| **Forms & Validation** | `react-hook-form`, `@hookform/resolvers`, `yup` |
+| **Networking** | Axios (`base-axios` with JWT interceptors & token refresh) |
+| **Frontend Testing** | Vitest, React Testing Library, Playwright E2E |
+| **Backend Framework** | Python 3.12, FastAPI, Pydantic v2 |
+| **ORM & Database** | SQLAlchemy, Alembic, SQLite / PostgreSQL |
+| **Vector Search & LLM** | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
+| **Backend Testing** | Pytest (138 tests) |
 
 ---
 
-# 📡 API Overview
+# ⚙️ Installation & Setup
 
-## Authentication
-
-```http
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-POST /api/v1/auth/refresh
-```
-
----
-
-## Workspace
-
-```http
-GET    /api/v1/workspaces
-POST   /api/v1/workspaces
-PUT    /api/v1/workspaces/{id}
-DELETE /api/v1/workspaces/{id}
-```
-
----
-
-## Documents
-
-```http
-POST /api/v1/documents/upload
-GET  /api/v1/documents/{id}
-DELETE /api/v1/documents/{id}
-```
-
----
-
-## Chat
-
-```http
-POST /api/v1/chat
-```
-
-Example Request
-
-```json
-{
-    "workspace_id":"workspace-id",
-    "message":"Explain the Transformer architecture."
-}
-```
-
-Example Response
-
-```json
-{
-    "answer":"The Transformer architecture is...",
-    "citations":[]
-}
-```
-
----
-
-# ⚙️ Installation
-
-## Clone the Repository
+## 1. Backend Setup
 
 ```bash
-git clone https://github.com/Vishaldave45/ai-study-assistant.git
+cd backend
 
-cd ai-study-assistant/backend
-```
-
-## Install uv
-
-```bash
+# Install uv package manager
 pip install uv
-```
 
-or
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-## Create Virtual Environment
-
-```bash
+# Create virtual environment & sync dependencies
 uv venv
-```
-
-## Activate Virtual Environment
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-### Windows
-
-```powershell
-.venv\Scripts\activate
-```
-
-## Install Dependencies
-
-```bash
-uv sync
-```
-
-or, if you don't commit `uv.lock`:
-
-```bash
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv sync --all-extras
-```
 
-```
-
-Create `.env`
-
-```env
-DATABASE_URL=
-JWT_SECRET_KEY=
-GEMINI_API_KEY=
-```
-
-Run database migrations
-
-```bash
+# Run database migrations
 alembic upgrade head
-```
 
-Start server
-
-```bash
+# Start FastAPI server
 uvicorn app.main:app --reload
 ```
-
-Open API Documentation
-
-```
-http://localhost:8000/docs
-```
+Server runs at: `http://localhost:8000` (API Docs: `http://localhost:8000/docs`)
 
 ---
 
-# 🧪 Testing
-
-Run all tests
+## 2. Frontend Setup
 
 ```bash
-pytest
+cd frontend
+
+# Install npm dependencies
+npm install --legacy-peer-deps
+
+# Start Vite development server
+npm run dev
+```
+Frontend runs at: `http://localhost:5173`
+
+---
+
+# 🧪 Running Tests
+
+### Frontend Unit Tests (Vitest)
+```bash
+cd frontend
+npm test
+```
+
+### Frontend E2E Tests (Playwright)
+```bash
+cd frontend
+npm run test:e2e
+```
+
+### Frontend Production Build
+```bash
+cd frontend
+npm run build
+```
+
+### Backend Test Suite (Pytest)
+```bash
+cd backend
+PYTHONPATH=. .venv/bin/pytest tests/
 ```
 
 ---
@@ -378,37 +231,19 @@ pytest
 # 🛣 Development Roadmap
 
 | Module | Status |
-|---------|--------|
-| Authentication | ✅ |
-| Workspace Management | ✅ |
-| PDF Upload | ✅ |
-| PDF Parsing | ✅ |
-| Text Processing | ✅ |
-| Chunking | ✅ |
-| Embedding Pipeline | ✅ |
-| FAISS Vector Store | ✅ |
-| Semantic Retrieval | ✅ |
-| Prompt Builder | ✅ |
-| Gemini Integration | ✅ |
-| Retrieval-Augmented Generation | ✅ |
-| AI Summaries | 🚧 |
-| Flashcards | 🚧 |
-| Quiz Generation | 🚧 |
-| Concept Explanation | 🚧 |
-| Knowledge Graph | 🚧 |
-| Conversation Memory | 🚧 |
-| Evaluation Framework | 🚧 |
-
----
-
-# 🤝 Contributing
-
-Contributions, suggestions, and issue reports are welcome.
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
+|---|---|
+| Authentication & JWT Refresh | ✅ Completed |
+| Workspace Management | ✅ Completed |
+| PDF Document Upload & Ingestion | ✅ Completed |
+| FAISS Vector Search & RAG | ✅ Completed |
+| TanStack Smart Data Table | ✅ Completed |
+| AI Summaries Library & Booklet Exporter | ✅ Completed |
+| AI Usage & Token Analytics Table | ✅ Completed |
+| React Hook Form + Yup Validation | ✅ Completed |
+| Redux Toolkit State Management | ✅ Completed |
+| Vitest & Playwright Testing Suite | ✅ Completed |
+| Route Code Splitting (`React.lazy`) | ✅ Completed |
+| Concept Explanation & Quizzes | 🚧 In Progress |
 
 ---
 
