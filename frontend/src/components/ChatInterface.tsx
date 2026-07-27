@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, UIEvent } from 'react';
 import { useChat } from '../hooks/useChat';
+import { useChatInfiniteQuery } from '../hooks/useChatInfiniteQuery';
 
 export function ChatInterface() {
   const {
@@ -22,6 +23,22 @@ export function ChatInterface() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // TanStack Infinite Query for Chat Message Pagination
+  const {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatInfiniteQuery(
+    activeConversation?.workspace_id || null,
+    activeConversation?.id || null
+  );
+
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+    if (e.currentTarget.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   // Auto-scroll to the bottom of the chat list when messages arrive
   useEffect(() => {
@@ -156,8 +173,13 @@ export function ChatInterface() {
               </div>
             )}
 
-            {/* Messages feed */}
-            <div className="chat-messages-feed">
+            {/* Messages feed with infinite scrolling */}
+            <div className="chat-messages-feed" onScroll={handleScroll}>
+              {isFetchingNextPage && (
+                <div style={{ textAlign: 'center', padding: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                  ⏳ Loading older message history...
+                </div>
+              )}
               {messages.length === 0 ? (
                 <div className="chat-empty-state">
                   <span className="chat-empty-icon">💬</span>

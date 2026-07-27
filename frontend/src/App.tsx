@@ -1,18 +1,21 @@
-import { useState } from 'react'; 
+import { useState, lazy, Suspense } from 'react'; 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
 import ProtectedRoute from './routes/ProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+import PageLoader from './components/feedback/PageLoader';
 import Card from './components/Card';
 import Sidebar from './components/Sidebar';
-import { DocumentManager } from './components/Documentmanager.tsx';
+import { DocumentManager } from './components/Documentmanager';
 import { ChatInterface } from './components/ChatInterface'; 
 import { SummaryGenerator } from './components/SummaryGenerator';
 import { AiUsageTable } from './components/AiUsageTable';
+
+// Route-level Code Splitting (React.lazy)
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 /**
  * Dashboard component displaying the main application view.
@@ -142,23 +145,25 @@ function Dashboard() {
 export function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Guest-only Routes */}
-        <Route element={<GuestRoute />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-        </Route>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Guest-only Routes */}
+          <Route element={<GuestRoute />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Route>
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Dashboard />} />
-        </Route>
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Dashboard />} />
+          </Route>
 
-        {/* Fallback Redirection */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Fallback Redirection */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
