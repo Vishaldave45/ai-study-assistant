@@ -15,13 +15,15 @@ import Card from './components/Card';
 import Sidebar from './components/Sidebar';
 import { DocumentManager } from './components/Documentmanager.tsx';
 import { ChatInterface } from './components/ChatInterface'; 
+import { SummaryGenerator } from './components/SummaryGenerator';
+
 /**
  * Dashboard component displaying the main application view.
  * Integrates Workspace Switcher Sidebar and displays active workspace details.
  */
 function Dashboard() {
   const { activeWorkspace, isLoading } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'documents' | 'chat'>('documents');
+  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries'>('documents');
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fb' }}>
@@ -82,13 +84,31 @@ function Dashboard() {
               >
                 💬 AI Chat
               </button>
+              <button 
+                onClick={() => setActiveTab('summaries')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'summaries' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'summaries' ? 'bold' : 'normal',
+                  color: activeTab === 'summaries' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                📝 AI Summaries
+              </button>
             </div>
 
             <section>
               {activeTab === 'documents' ? (
                 <DocumentManager />
-              ) : (
+              ) : activeTab === 'chat' ? (
                 <ChatInterface />
+              ) : (
+                <SummaryGenerator />
               )}
             </section>
           </Card>
