@@ -12,9 +12,7 @@ from app.core.config import settings
 from app.database.base import Base
 
 # Import all models so Alembic can detect them
-from app.database.models.user import User
-from app.database.models.workspace import Workspace
-from app.database.models.refresh_token import RefreshToken
+import app.database.models
 
 config = context.config
 

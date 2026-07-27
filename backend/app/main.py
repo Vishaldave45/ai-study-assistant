@@ -3,6 +3,12 @@ from fastapi import FastAPI
 from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.logging import configure_logging
+from app.database.session import engine
+from app.database.base import Base
+import app.database.models  # noqa: F401
+
+# Create tables if they do not exist
+Base.metadata.create_all(bind=engine)
 
 configure_logging()
 
