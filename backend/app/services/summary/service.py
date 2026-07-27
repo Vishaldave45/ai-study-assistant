@@ -60,8 +60,9 @@ class SummaryService:
             if document.workspace_id != workspace_id:
                 raise DocumentAccessDeniedError("Document does not belong to the specified workspace.")
 
-            if document.status != DocumentStatus.READY:
-                raise ValueError("Document is not ready (not indexed/processed).")
+            valid_statuses = {DocumentStatus.READY, DocumentStatus.EMBEDDED}
+            if document.status not in valid_statuses:
+                raise ValueError(f"Document is not ready (current status: {document.status.value}). Please wait for processing to complete.")
 
             # Load chunks for this document
             chunks = self.chunk_repo.list_by_document(document.id)
@@ -74,9 +75,10 @@ class SummaryService:
                     }
                 )
         else:
-            # Workspace-wide summary: gather from all READY documents
+            # Workspace-wide summary: gather from all READY/EMBEDDED documents
             documents = self.document_repo.list_by_workspace(workspace_id)
-            ready_docs = [doc for doc in documents if doc.status == DocumentStatus.READY]
+            valid_statuses = {DocumentStatus.READY, DocumentStatus.EMBEDDED}
+            ready_docs = [doc for doc in documents if doc.status in valid_statuses]
 
             if not ready_docs:
                 raise ValueError("No indexed or processed documents found in this workspace to summarize.")
