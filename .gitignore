@@ -55,3 +55,4 @@ logs/
 
 # ── Docker ──
 *.pid
+*.zip
