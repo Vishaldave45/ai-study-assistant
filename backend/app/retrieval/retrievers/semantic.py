@@ -50,7 +50,57 @@ class SemanticRetriever:
         )
 
         if not results:
-            return []
+            # Try auto-indexing workspace documents if vectors haven't been generated
+            try:
+                from app.database.models.document import Document
+                docs_stmt = select(Document).where(
+                    Document.workspace_id == workspace_id, 
+                    Document.deleted_at.is_(None)
+                )
+                docs = self.db.execute(docs_stmt).scalars().all()
+                for doc in docs:
+                    try:
+                        self.vectorstore_service.index_document(doc.owner_id, doc.id)
+                    except Exception as idx_err:
+                        logger.warning(f"Auto-indexing doc {doc.id} failed during retrieval: {idx_err}")
+
+                # Retry vector search
+                results = self.vectorstore_service.search_workspace(
+                    workspace_id=workspace_id,
+                    query_vector=query_vector,
+                    top_k=fetch_k,
+                )
+            except Exception as e:
+                logger.warning(f"Auto-indexing fallback failed: {e}")
+
+        if not results:
+            # Fallback to direct DB chunks for workspace documents
+            try:
+                from app.database.models.document import Document
+                chunk_stmt = (
+                    select(DocumentChunk, Document)
+                    .join(Document, DocumentChunk.document_id == Document.id)
+                    .where(Document.workspace_id == workspace_id, Document.deleted_at.is_(None))
+                    .limit(fetch_k)
+                )
+                db_results = self.db.execute(chunk_stmt).all()
+                fallback_chunks = []
+                for chunk_obj, doc_obj in db_results:
+                    fallback_chunks.append(
+                        RetrievedChunk(
+                            chunk_id=str(chunk_obj.id),
+                            document_id=str(doc_obj.id),
+                            text=chunk_obj.content,
+                            score=0.8,
+                            page=0,
+                            chunk_index=chunk_obj.chunk_index,
+                            metadata={"original_filename": doc_obj.original_filename},
+                        )
+                    )
+                return fallback_chunks
+            except Exception as e:
+                logger.error(f"Fallback DB chunk retrieval failed: {e}")
+                return []
 
         # 3. Resolve actual chunk content from SQL DB
         chunk_ids = [res.chunk_id for res in results]
