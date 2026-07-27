@@ -273,6 +273,44 @@ class TestConversationAPI(unittest.TestCase):
         get_response = self.client.get(f"/api/v1/conversations/{c.id}")
         self.assertEqual(get_response.status_code, 404)
 
+    def test_get_conversation_messages_success(self):
+        from app.database.models.message import Message
+        from app.database.enums import MessageRole
+        c = Conversation(
+            id=uuid4(),
+            workspace_id=self.workspace1.id,
+            user_id=self.user1.id,
+            title="Chat Messages",
+            status=ConversationStatus.ACTIVE,
+        )
+        self.db.add(c)
+        self.db.commit()
+
+        # Add some messages
+        m1 = Message(
+            id=uuid4(),
+            conversation_id=c.id,
+            role=MessageRole.USER,
+            content="Hello AI",
+        )
+        m2 = Message(
+            id=uuid4(),
+            conversation_id=c.id,
+            role=MessageRole.ASSISTANT,
+            content="Hello Student",
+        )
+        self.db.add(m1)
+        self.db.add(m2)
+        self.db.commit()
+
+        response = self.client.get(f"/api/v1/conversations/{c.id}/messages?page=1&page_size=10")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["total"], 2)
+        self.assertEqual(len(data["messages"]), 2)
+        self.assertEqual(data["messages"][0]["content"], "Hello AI")
+        self.assertEqual(data["messages"][1]["content"], "Hello Student")
+
 
 if __name__ == "__main__":
     unittest.main()

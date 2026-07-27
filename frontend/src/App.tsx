@@ -1,7 +1,9 @@
+import { useState } from 'react'; 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import { DocumentProvider } from './contexts/DocumentContext';
+import { ChatProvider } from './contexts/ChatContext'; 
 import { useWorkspace } from './hooks/useWorkspace';
 import ProtectedRoute from './routes/ProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
@@ -12,6 +14,9 @@ import ResetPassword from './pages/ResetPassword';
 import Card from './components/Card';
 import Sidebar from './components/Sidebar';
 import { DocumentManager } from './components/Documentmanager.tsx';
+import { ChatInterface } from './components/ChatInterface'; 
+import { SummaryGenerator } from './components/SummaryGenerator';
+import { AiUsageTable } from './components/AiUsageTable';
 
 /**
  * Dashboard component displaying the main application view.
@@ -19,6 +24,7 @@ import { DocumentManager } from './components/Documentmanager.tsx';
  */
 function Dashboard() {
   const { activeWorkspace, isLoading } = useWorkspace();
+  const [activeTab, setActiveTab] = useState<'documents' | 'chat' | 'summaries' | 'usage'>('documents');
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fb' }}>
@@ -40,16 +46,89 @@ function Dashboard() {
               )}
             </header>
 
-            <section>
+            <section style={{ fontSize: '0.85em', color: '#666', marginBottom: '20px' }}>
               <p>Workspace ID: <code>{activeWorkspace.id}</code></p>
               <p>Created: {new Date(activeWorkspace.created_at).toLocaleString()}</p>
-              <p>Last Updated: {new Date(activeWorkspace.updated_at).toLocaleString()}</p>
             </section>
             
-            <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
+            {/* Simple tab navigator */}
+            <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #eee', marginBottom: '20px' }}>
+              <button 
+                onClick={() => setActiveTab('documents')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'documents' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'documents' ? 'bold' : 'normal',
+                  color: activeTab === 'documents' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                📁 Files
+              </button>
+              <button 
+                onClick={() => setActiveTab('chat')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'chat' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'chat' ? 'bold' : 'normal',
+                  color: activeTab === 'chat' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                💬 AI Chat
+              </button>
+              <button 
+                onClick={() => setActiveTab('summaries')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'summaries' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'summaries' ? 'bold' : 'normal',
+                  color: activeTab === 'summaries' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                📝 AI Summaries
+              </button>
+              <button 
+                onClick={() => setActiveTab('usage')}
+                style={{
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'usage' ? '2px solid #0066cc' : '2px solid transparent',
+                  fontWeight: activeTab === 'usage' ? 'bold' : 'normal',
+                  color: activeTab === 'usage' ? '#0066cc' : '#555',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  outline: 'none'
+                }}
+              >
+                ⚡ AI Usage
+              </button>
+            </div>
 
             <section>
-              <DocumentManager />
+              {activeTab === 'documents' ? (
+                <DocumentManager />
+              ) : activeTab === 'chat' ? (
+                <ChatInterface />
+              ) : activeTab === 'summaries' ? (
+                <SummaryGenerator />
+              ) : (
+                <AiUsageTable />
+              )}
             </section>
           </Card>
         ) : (
@@ -63,34 +142,38 @@ function Dashboard() {
   );
 }
 
+
 export function App() {
   return (
     <AuthProvider>
       <WorkspaceProvider>
         <DocumentProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Guest-only Routes */}
-              <Route element={<GuestRoute />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-              </Route>
+          <ChatProvider> {/* <-- Mount Provider Here */}
+            <BrowserRouter>
+              <Routes>
+                {/* Guest-only Routes */}
+                <Route element={<GuestRoute />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                </Route>
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Dashboard />} />
-              </Route>
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<Dashboard />} />
+                </Route>
 
-              {/* Fallback Redirection */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
+                {/* Fallback Redirection */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </ChatProvider>
         </DocumentProvider>
       </WorkspaceProvider>
     </AuthProvider>
   );
 }
+
 
 export default App;

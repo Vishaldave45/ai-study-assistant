@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import Field
 from app.schemas.base import BaseSchema
 
@@ -7,7 +8,7 @@ class SummaryResponse(BaseSchema):
         ...,
         description="The generated summary text content."
     )
-    token_usage: dict[str, int] | None = Field(
+    token_usage: dict[str, Any] | None = Field(
         None,
         description="Metadata on the token consumption of the prompt and generation."
     )

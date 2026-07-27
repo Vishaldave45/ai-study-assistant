@@ -60,11 +60,21 @@ class SummaryService:
             if document.workspace_id != workspace_id:
                 raise DocumentAccessDeniedError("Document does not belong to the specified workspace.")
 
-            if document.status != DocumentStatus.READY:
-                raise ValueError("Document is not ready (not indexed/processed).")
+            valid_statuses = {DocumentStatus.READY, DocumentStatus.EMBEDDED}
+            if document.status not in valid_statuses:
+                raise ValueError(f"Document is not ready (current status: {document.status.value}). Please wait for processing to complete.")
 
             # Load chunks for this document
             chunks = self.chunk_repo.list_by_document(document.id)
+            if not chunks:
+                try:
+                    from app.services.document.processing_service import DocumentProcessingService
+                    proc_service = DocumentProcessingService(self.db)
+                    proc_service.process_document(current_user_id, document.id)
+                    chunks = self.chunk_repo.list_by_document(document.id)
+                except Exception as exc:
+                    logger.warning(f"On-demand chunking failed for doc {document.id}: {exc}")
+
             for c in chunks:
                 chunks_for_builder.append(
                     {
@@ -74,15 +84,25 @@ class SummaryService:
                     }
                 )
         else:
-            # Workspace-wide summary: gather from all READY documents
+            # Workspace-wide summary: gather from all READY/EMBEDDED documents
             documents = self.document_repo.list_by_workspace(workspace_id)
-            ready_docs = [doc for doc in documents if doc.status == DocumentStatus.READY]
+            valid_statuses = {DocumentStatus.READY, DocumentStatus.EMBEDDED}
+            ready_docs = [doc for doc in documents if doc.status in valid_statuses]
 
             if not ready_docs:
                 raise ValueError("No indexed or processed documents found in this workspace to summarize.")
 
             for doc in ready_docs:
                 chunks = self.chunk_repo.list_by_document(doc.id)
+                if not chunks:
+                    try:
+                        from app.services.document.processing_service import DocumentProcessingService
+                        proc_service = DocumentProcessingService(self.db)
+                        proc_service.process_document(current_user_id, doc.id)
+                        chunks = self.chunk_repo.list_by_document(doc.id)
+                    except Exception as exc:
+                        logger.warning(f"On-demand chunking failed for doc {doc.id}: {exc}")
+
                 for c in chunks:
                     chunks_for_builder.append(
                         {
@@ -112,9 +132,22 @@ class SummaryService:
 
         processing_time_ms = int((time.perf_counter() - start_time) * 1000)
 
+        token_usage = None
+        if llm_response.usage:
+            prompt = llm_response.usage.get("prompt_tokens") or llm_response.usage.get("prompt_token_count") or 0
+            completion = llm_response.usage.get("completion_tokens") or llm_response.usage.get("candidates_token_count") or 0
+            total = llm_response.usage.get("total_tokens") or llm_response.usage.get("total_token_count") or 0
+            if total == 0 and (prompt > 0 or completion > 0):
+                total = prompt + completion
+            token_usage = {
+                "prompt_tokens": prompt,
+                "completion_tokens": completion,
+                "total_tokens": total,
+            }
+
         return SummaryResponse(
             summary=llm_response.answer,
-            token_usage=llm_response.usage,
+            token_usage=token_usage,
             chunk_count=chunk_count,
             processing_time_ms=processing_time_ms,
             model=llm_response.model,

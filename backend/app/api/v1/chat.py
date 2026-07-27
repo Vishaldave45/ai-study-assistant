@@ -24,6 +24,7 @@ from app.schemas.chat import (
     CreateConversationRequest,
     RenameConversationRequest,
     SuccessResponse,
+    MessageListResponse,
 )
 from app.services.chat.conversation_service import ConversationService
 
@@ -240,6 +241,46 @@ def delete_conversation(
             conversation_id=conversation_id,
         )
         return SuccessResponse(message="Conversation deleted successfully.")
+    except (WorkspaceNotFoundError, ConversationNotFoundError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except (WorkspaceAccessDeniedError, ConversationAccessDeniedError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+
+
+@router.get(
+    "/{conversation_id}/messages",
+    response_model=MessageListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get conversation messages",
+    description="Retrieves a paginated list of messages inside a conversation.",
+)
+def get_conversation_messages(
+    conversation_id: UUID,
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(100, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    service: ConversationService = Depends(get_conversation_service),
+) -> MessageListResponse:
+    try:
+        messages, total, total_pages = service.get_conversation_messages(
+            user_id=current_user.id,
+            conversation_id=conversation_id,
+            page=page,
+            page_size=page_size,
+        )
+        return MessageListResponse(
+            messages=messages,
+            page=page,
+            page_size=page_size,
+            total=total,
+            total_pages=total_pages,
+        )
     except (WorkspaceNotFoundError, ConversationNotFoundError) as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

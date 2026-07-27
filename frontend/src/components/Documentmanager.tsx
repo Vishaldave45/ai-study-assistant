@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useDocument } from '../hooks/useDocument';
+import { DataTable } from './DataTable/DataTable';
 import type { DocumentItem } from '../types/document.ts';
 
 // Helper to format file sizes nicely
@@ -18,10 +20,6 @@ export function DocumentManager() {
     documents,
     isLoading,
     error: apiError,
-    totalCount,
-    currentPage,
-    totalPages,
-    fetchDocuments,
     uploadDocument,
     deleteDocument,
     clearError,
@@ -29,7 +27,6 @@ export function DocumentManager() {
 
   // Local UI States
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -81,33 +78,80 @@ export function DocumentManager() {
     }
   };
 
-  const handleSearchSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    fetchDocuments(1, searchQuery.trim() || undefined);
-  };
+  // TanStack Table Column Definitions
+  const columns = useMemo<ColumnDef<DocumentItem>[]>(
+    () => [
+      {
+        accessorKey: 'original_filename',
+        header: 'Filename',
+        cell: (info: any) => (
+          <div style={{ fontWeight: 600, wordBreak: 'break-all' }}>
+            📄 {info.getValue()}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'file_size',
+        header: 'Size',
+        cell: (info: any) => formatBytes(info.getValue()),
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: (info: any) => {
+          const status = info.getValue() as string;
+          const colorClass =
+            status === 'ready' || status === 'embedded'
+              ? 'green'
+              : status === 'failed'
+              ? 'red'
+              : 'blue';
+          return <span className={`status-pill ${colorClass}`}>{status}</span>;
+        },
+      },
+      {
+        accessorKey: 'created_at',
+        header: 'Uploaded Date',
+        cell: (info: any) => new Date(info.getValue()).toLocaleDateString(),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: (info: any) => {
+          const doc = info.row.original as DocumentItem;
+          return (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <a
+                href={`/api/v1/documents/${doc.id}/download`}
+                download
+                title="Download PDF"
+                style={{ textDecoration: 'none', fontSize: '1.1em' }}
+              >
+                📥
+              </a>
+              <button
+                onClick={() => deleteDocument(doc.id)}
+                title="Delete PDF"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em' }}
+              >
+                🗑️
+              </button>
+            </div>
+          );
+        },
+      },
+    ],
+    [deleteDocument]
+  );
 
-  const handlePageChange = (page: number) => {
-    fetchDocuments(page, searchQuery.trim() || undefined);
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'ready':
-      case 'embedded':
-        return 'green';
-      case 'processing':
-      case 'uploading':
-      case 'embedding':
-        return 'blue';
-      case 'failed':
-        return 'red';
-      default:
-        return '#333';
-    }
+  const handleDeleteSelectedRows = (selectedRows: DocumentItem[]) => {
+    selectedRows.forEach((doc) => deleteDocument(doc.id));
   };
 
   return (
-    <section aria-labelledby="doc-manager-title" style={{ marginTop: '20px' }}>
+    <section aria-labelledby="doc-manager-title" style={{ marginTop: '10px' }}>
       <h3 id="doc-manager-title" style={{ marginBottom: '15px' }}>Document Manager</h3>
 
       {/* Error state alert */}
@@ -117,129 +161,41 @@ export function DocumentManager() {
         </div>
       )}
 
-      {}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '25px' }}>
-        
-        
-        <div style={{ background: '#fafafa', padding: '16px', borderRadius: '6px', border: '1px dashed #ccc' }}>
-          <form onSubmit={handleUploadSubmit}>
-            <label htmlFor="pdf-file" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
-              Upload PDF Study Guide (Max 20MB)
-            </label>
+      {/* Upload PDF Card */}
+      <div style={{ background: '#fafafa', padding: '16px', borderRadius: '8px', border: '1px dashed #ccc', marginBottom: '20px' }}>
+        <form onSubmit={handleUploadSubmit}>
+          <label htmlFor="pdf-file" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
+            Upload PDF Study Guide (Max 20MB)
+          </label>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <input
               id="pdf-file"
               type="file"
               accept=".pdf,application/pdf"
               onChange={handleFileChange}
               disabled={isLoading || isUploading}
-              style={{ width: '100%', marginBottom: '12px' }}
+              style={{ flex: 1 }}
             />
             <button 
               type="submit" 
               disabled={!selectedFile || isLoading || isUploading}
-              style={{ padding: '6px 12px', cursor: 'pointer', background: '#0066cc', color: '#fff', border: 'none', borderRadius: '4px' }}
+              style={{ padding: '8px 16px', cursor: 'pointer', background: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600' }}
             >
-              {isUploading ? 'Uploading...' : 'Upload file'}
+              {isUploading ? 'Uploading...' : 'Upload File'}
             </button>
-          </form>
-        </div>
-
-        {/* Search Form Card */}
-        <div style={{ background: '#fafafa', padding: '16px', borderRadius: '6px', border: '1px solid #eee', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <form onSubmit={handleSearchSubmit}>
-            <label htmlFor="doc-search" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
-              Search Documents
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                id="doc-search"
-                type="search"
-                placeholder="Filter by filename..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1, padding: '6px' }}
-              />
-              <button type="submit" style={{ padding: '6px 12px', cursor: 'pointer' }}>
-                Search
-              </button>
-            </div>
-          </form>
-        </div>
-
+          </div>
+        </form>
       </div>
 
-      {/* Documents Table */}
-      {isLoading && documents.length === 0 ? (
-        <p>Loading files...</p>
-      ) : documents.length === 0 ? (
-        <p style={{ color: '#888', fontStyle: 'italic', padding: '20px 0' }}>No documents uploaded in this workspace yet.</p>
-      ) : (
-        <>
-          <div style={{ overflowX: 'auto', marginBottom: '15px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95em' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #ddd', background: '#f0f0f0', textAlign: 'left' }}>
-                  <th style={{ padding: '10px' }}>Filename</th>
-                  <th style={{ padding: '10px' }}>Size</th>
-                  <th style={{ padding: '10px' }}>Status</th>
-                  <th style={{ padding: '10px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((doc: DocumentItem) => (
-                  <tr key={doc.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '10px', wordBreak: 'break-all' }}>{doc.original_filename}</td>
-                    <td style={{ padding: '10px' }}>{formatBytes(doc.file_size)}</td>
-                    <td style={{ padding: '10px', textTransform: 'capitalize', fontWeight: 'bold', color: getStatusColor(doc.status) }}>
-                      {doc.status}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <a 
-                          href={`/api/v1/documents/${doc.id}/download`} 
-                          download 
-                          title="Download PDF"
-                          style={{ textDecoration: 'none', fontSize: '1.1em' }}
-                        >
-                          📥
-                        </a>
-                        <button 
-                          onClick={() => deleteDocument(doc.id)} 
-                          title="Delete PDF"
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em' }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginTop: '20px' }}>
-              <button 
-                onClick={() => handlePageChange(currentPage - 1)} 
-                disabled={currentPage === 1 || isLoading}
-                style={{ padding: '5px 10px', cursor: 'pointer' }}
-              >
-                Previous
-              </button>
-              <span>Page {currentPage} of {totalPages} ({totalCount} total files)</span>
-              <button 
-                onClick={() => handlePageChange(currentPage + 1)} 
-                disabled={currentPage === totalPages || isLoading}
-                style={{ padding: '5px 10px', cursor: 'pointer' }}
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      {/* Documents TanStack Table */}
+      <DataTable
+        columns={columns}
+        data={documents}
+        title="Workspace Documents"
+        subtitle="Manage uploaded PDF files with sorting, global search, column filtering, and row selection."
+        isLoading={isLoading}
+        onDeleteSelectedRows={handleDeleteSelectedRows}
+      />
     </section>
   );
 }

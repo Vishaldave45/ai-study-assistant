@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 
+connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+
 # SQLAlchemy Engine
 engine = create_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
+    connect_args=connect_args,
     pool_pre_ping=True,
     future=True,
 )

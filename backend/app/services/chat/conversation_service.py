@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 
 from app.database.enums import ConversationStatus
 from app.database.models.conversation import Conversation
+from app.database.models.message import Message
 from app.exceptions.chat import (
     ConversationAccessDeniedError,
     ConversationArchivedError,
@@ -17,7 +18,7 @@ from app.exceptions.workspace import (
 )
 from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.workspace_repository import WorkspaceRepository
-
+from app.repositories.message_repository import MessageRepository
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +35,8 @@ class ConversationService:
         self.conversation_repo = conversation_repo
         self.workspace_repo = workspace_repo
         self.db = conversation_repo.db
-
+        self.message_repo = MessageRepository(self.db) 
+        
     def validate_access(self, user_id: UUID, conversation: Conversation) -> None:
         """
         Ensures the conversation belongs to the user and is associated with a workspace owned by the user.
@@ -267,3 +269,32 @@ class ConversationService:
             raise
 
         return conversation
+
+    def get_conversation_messages(
+        self,
+        user_id: UUID,
+        conversation_id: UUID,
+        page: int = 1,
+        page_size: int = 100,
+    ) -> tuple[list[Message], int, int]:
+        """
+        Retrieves a list of messages inside a conversation after checking user permissions.
+        """
+        conversation = self.conversation_repo.get_by_id(conversation_id)
+        if conversation is None:
+            raise ConversationNotFoundError(f"Conversation with ID {conversation_id} not found.")
+
+        self.validate_access(user_id, conversation)
+
+        skip = (page - 1) * page_size
+        limit = page_size
+
+        total = self.message_repo.count(conversation_id)
+        messages = self.message_repo.list_by_conversation(
+            conversation_id=conversation_id,
+            limit=limit,
+            offset=skip,
+        )
+
+        total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+        return messages, total, total_pages
