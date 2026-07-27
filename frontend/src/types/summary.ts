@@ -22,3 +22,12 @@ export interface SummaryResponse {
   processing_time_ms: number;
   model: string;
 }
+
+export interface SavedSummary extends SummaryResponse {
+  id: string;
+  title: string;
+  workspace_id: string;
+  document_name: string;
+  template_type: SummaryTemplateType;
+  created_at: string;
+}

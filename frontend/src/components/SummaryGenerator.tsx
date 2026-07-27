@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { useDocument } from '../hooks/useDocument';
 import { summaryApi } from '../api/summary';
-import type { SummaryTemplateType, SummaryResponse } from '../types/summary';
+import { summaryStorage } from '../utils/summaryStorage';
+import { SummaryLibraryTable } from './SummaryLibraryTable';
+import type { SummaryTemplateType, SummaryResponse, SavedSummary } from '../types/summary';
 
 interface TemplateOption {
   type: SummaryTemplateType;
@@ -49,12 +51,24 @@ export function SummaryGenerator() {
   const { activeWorkspace } = useWorkspace();
   const { documents } = useDocument();
 
+  const [subTab, setSubTab] = useState<'generator' | 'library'>('generator');
   const [selectedDocId, setSelectedDocId] = useState<string>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<SummaryTemplateType>('short');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [summaryData, setSummaryData] = useState<SummaryResponse | null>(null);
+  const [savedSummaries, setSavedSummaries] = useState<SavedSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Load saved summaries for active workspace
+  useEffect(() => {
+    if (activeWorkspace) {
+      const items = summaryStorage.getSummaries(activeWorkspace.id);
+      setSavedSummaries(items);
+    } else {
+      setSavedSummaries([]);
+    }
+  }, [activeWorkspace]);
 
   const getErrorMessage = (err: unknown): string => {
     if (axios.isAxiosError(err)) {
@@ -82,11 +96,45 @@ export function SummaryGenerator() {
         template_type: selectedTemplate,
       });
       setSummaryData(res);
+
+      // Auto-save to workspace summary library
+      const docName =
+        selectedDocId === 'all'
+          ? 'Entire Workspace'
+          : documents.find((d) => d.id === selectedDocId)?.original_filename || 'Document';
+
+      const templateLabel =
+        TEMPLATE_OPTIONS.find((t) => t.type === selectedTemplate)?.label || 'Summary';
+
+      const newSavedItem: SavedSummary = {
+        ...res,
+        id: `sum_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        title: `${templateLabel} (${docName})`,
+        workspace_id: activeWorkspace.id,
+        document_name: docName,
+        template_type: selectedTemplate,
+        created_at: new Date().toISOString(),
+      };
+
+      const updatedList = summaryStorage.saveSummary(activeWorkspace.id, newSavedItem);
+      setSavedSummaries(updatedList);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDeleteSingleSummary = (id: string) => {
+    if (!activeWorkspace) return;
+    const updated = summaryStorage.deleteSummary(activeWorkspace.id, id);
+    setSavedSummaries(updated);
+  };
+
+  const handleDeleteMultipleSummaries = (ids: string[]) => {
+    if (!activeWorkspace) return;
+    const updated = summaryStorage.deleteSummaries(activeWorkspace.id, ids);
+    setSavedSummaries(updated);
   };
 
   const handleCopy = () => {
@@ -106,8 +154,32 @@ export function SummaryGenerator() {
 
   return (
     <div className="summary-container">
-      {/* 1. Header & Controls Card */}
-      <div className="summary-card shadow-sm">
+      {/* Sub-tab navigation */}
+      <div className="tab-switcher" style={{ marginBottom: '15px' }}>
+        <button
+          className={`tab-btn ${subTab === 'generator' ? 'active' : ''}`}
+          onClick={() => setSubTab('generator')}
+        >
+          ✨ Generate New Summary
+        </button>
+        <button
+          className={`tab-btn ${subTab === 'library' ? 'active' : ''}`}
+          onClick={() => setSubTab('library')}
+        >
+          📚 Summaries Library ({savedSummaries.length})
+        </button>
+      </div>
+
+      {subTab === 'library' ? (
+        <SummaryLibraryTable
+          summaries={savedSummaries}
+          onDeleteSummary={handleDeleteSingleSummary}
+          onDeleteSummaries={handleDeleteMultipleSummaries}
+        />
+      ) : (
+        <>
+          {/* 1. Header & Controls Card */}
+          <div className="summary-card shadow-sm">
         <div className="summary-card-header">
           <h2>📝 AI Summary Generator</h2>
           <p className="summary-subtitle">
@@ -215,6 +287,8 @@ export function SummaryGenerator() {
             <pre className="summary-text-display">{summaryData.summary}</pre>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
