@@ -8,7 +8,10 @@ from app.database.base import Base
 import app.database.models  # noqa: F401
 
 # Create tables if they do not exist
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass
 
 configure_logging()
 
