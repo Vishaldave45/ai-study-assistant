@@ -12,6 +12,8 @@ import type { RootState } from '../redux/store';
 
 import { AuthProvider } from '../contexts/AuthContext';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
+import { DocumentProvider } from '../contexts/DocumentContext';
+import { ChatProvider } from '../contexts/ChatContext';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -56,9 +58,13 @@ export function renderWithProviders(
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <WorkspaceProvider>
-              <MemoryRouter initialEntries={initialEntries}>
-                {children}
-              </MemoryRouter>
+              <DocumentProvider>
+                <ChatProvider>
+                  <MemoryRouter initialEntries={initialEntries}>
+                    {children}
+                  </MemoryRouter>
+                </ChatProvider>
+              </DocumentProvider>
             </WorkspaceProvider>
           </AuthProvider>
         </QueryClientProvider>
@@ -68,6 +74,7 @@ export function renderWithProviders(
 
   return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
 }
+
 
 
 
