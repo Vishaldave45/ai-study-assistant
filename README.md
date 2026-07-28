@@ -79,7 +79,7 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
 
 - **Multi-session RAG Chat Conversations** with history persistence.
 - **Paginated Message History**: Powered by TanStack Query (`useChatInfiniteQuery`) with top-scroll auto-loading.
-- **Interactive Prompt Chips**: One-click study actions (e.g. *Summarize Key Concepts*, *Practice Exam Questions*, *Extract Terminology*).
+- **Interactive Prompt Chips**: One-click study actions (e.g. _Summarize Key Concepts_, _Practice Exam Questions_, _Extract Terminology_).
 - **Page Citations**: Grounded answer references with exact page numbers.
 
 </details>
@@ -196,18 +196,18 @@ ai-study-assistant/
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-|---|---|
-| **Frontend Core** | React 19, TypeScript 5.6, Vite 8 |
-| **State Management** | Redux Toolkit (`@reduxjs/toolkit`), React Context API |
-| **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8) |
-| **Forms & Validation** | `react-hook-form`, `@hookform/resolvers`, `yup` |
-| **Networking** | Axios (`base-axios` with JWT interceptors & token refresh) |
-| **Frontend Testing** | Vitest (7 tests passed), Playwright E2E |
-| **Backend Framework** | Python 3.12, FastAPI, Pydantic v2 |
-| **ORM & Database** | SQLAlchemy, Alembic, SQLite / PostgreSQL |
-| **Vector Search & LLM** | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
-| **Backend Testing** | Pytest (138 tests passed) |
+| Category                   | Technologies                                                     |
+| -------------------------- | ---------------------------------------------------------------- |
+| **Frontend Core**          | React 19, TypeScript 5.6, Vite 8                                 |
+| **State Management**       | Redux Toolkit (`@reduxjs/toolkit`), React Context API            |
+| **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8)       |
+| **Forms & Validation**     | `react-hook-form`, `@hookform/resolvers`, `yup`                  |
+| **Networking**             | Axios (`base-axios` with JWT interceptors & token refresh)       |
+| **Frontend Testing**       | Vitest (7 tests passed), Playwright E2E                          |
+| **Backend Framework**      | Python 3.12, FastAPI, Pydantic v2                                |
+| **ORM & Database**         | SQLAlchemy, Alembic, SQLite / PostgreSQL                         |
+| **Vector Search & LLM**    | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
+| **Backend Testing**        | Pytest (138 tests passed)                                        |
 
 ---
 
@@ -232,6 +232,7 @@ alembic upgrade head
 # Start FastAPI backend server
 uvicorn app.main:app --reload
 ```
+
 > [!NOTE]
 > Backend server runs at `http://localhost:8000`. Interactive Swagger Docs: `http://localhost:8000/docs`.
 
@@ -248,6 +249,7 @@ npm install --legacy-peer-deps
 # Start Vite development server
 npm run dev
 ```
+
 > [!NOTE]
 > Frontend web app runs at `http://localhost:5173`.
 
@@ -256,31 +258,39 @@ npm run dev
 ## 🧪 Testing Suite
 
 ### ⚡ Frontend Vitest Unit Tests
+
 ```bash
 cd frontend
 npm test
 ```
+
 - ✅ **7/7 Passed**: Validates Login Yup schema, TanStack DataTable filtering, and `useAxios` response wrappers.
 
 ### 🎭 Frontend Playwright E2E Tests
+
 ```bash
 cd frontend
 npm run test:e2e
 ```
+
 - ✅ Validates Authentication & Workspace Document management user flows.
 
 ### 📦 Frontend Production Build
+
 ```bash
 cd frontend
 npm run build
 ```
+
 - ✅ **190 modules transformed cleanly** with **0 errors and 0 warnings**.
 
 ### 🐍 Backend Pytest Suite
+
 ```bash
 cd backend
 PYTHONPATH=. .venv/bin/pytest tests/
 ```
+
 - ✅ **138/138 Passed**: Validates RAG chunking, embeddings, semantic retrieval, and conversation APIs.
 
 ---

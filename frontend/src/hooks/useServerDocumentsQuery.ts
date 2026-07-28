@@ -32,6 +32,16 @@ export function useServerDocumentsQuery({
     enabled: !!workspaceId,
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => {
+      if (!workspaceId) throw new Error('No active workspace selected.');
+      return documentApi.upload(workspaceId, file);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents', workspaceId] });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => documentApi.delete(id),
     onSuccess: () => {
@@ -41,7 +51,11 @@ export function useServerDocumentsQuery({
 
   return {
     ...documentsQuery,
+    uploadDocument: uploadMutation.mutateAsync,
+    isUploading: uploadMutation.isPending,
     deleteDocument: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
   };
 }
+
+export default useServerDocumentsQuery;
