@@ -1,13 +1,23 @@
-import React, { PropsWithChildren } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import React, { type PropsWithChildren } from 'react';
+import { render, type RenderOptions } from '@testing-library/react';
+
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import authReducer from '../redux/slices/authSlice';
 import workspaceReducer from '../redux/slices/workspaceSlice';
 import uiReducer from '../redux/slices/uiSlice';
 import type { RootState } from '../redux/store';
+
+import { AuthProvider } from '../contexts/AuthContext';
+import { WorkspaceProvider } from '../contexts/WorkspaceContext';
+
+const rootReducer = combineReducers({
+  auth: authReducer,
+  workspace: workspaceReducer,
+  ui: uiReducer,
+});
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: Partial<RootState>;
@@ -17,14 +27,11 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 export function createTestStore(preloadedState?: Partial<RootState>) {
   return configureStore({
-    reducer: {
-      auth: authReducer,
-      workspace: workspaceReducer,
-      ui: uiReducer,
-    },
-    preloadedState: preloadedState as any,
+    reducer: rootReducer,
+    preloadedState,
   });
 }
+
 
 export function renderWithProviders(
   ui: React.ReactElement,
@@ -47,9 +54,13 @@ export function renderWithProviders(
     return (
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={initialEntries}>
-            {children}
-          </MemoryRouter>
+          <AuthProvider>
+            <WorkspaceProvider>
+              <MemoryRouter initialEntries={initialEntries}>
+                {children}
+              </MemoryRouter>
+            </WorkspaceProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </Provider>
     );
@@ -58,5 +69,10 @@ export function renderWithProviders(
   return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
 }
 
+
+
+export { renderWithProviders as render };
 export * from '@testing-library/react';
 export { userEvent } from '@testing-library/user-event';
+
+
