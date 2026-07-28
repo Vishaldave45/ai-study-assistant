@@ -19,4 +19,3 @@ describe('Card Component', () => {
   });
 });
 
-
