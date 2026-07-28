@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from './DataTable/DataTable';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { usageTracker } from '../utils/usageTracker';
 import type { AiUsageRecord } from '../types/usage';
 
-export function AiUsageTable() {
+export const AiUsageTable = memo(function AiUsageTable() {
   const { activeWorkspace } = useWorkspace();
   const [logs, setLogs] = useState<AiUsageRecord[]>([]);
 
@@ -196,6 +196,7 @@ export function AiUsageTable() {
       )}
     </div>
   );
-}
+});
 
 export default AiUsageTable;
+

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useReducer, useMemo, memo } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDocument } from '../hooks/useDocument';
@@ -15,7 +15,47 @@ function formatBytes(bytes: number, decimals = 2): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-export function DocumentManager() {
+// State & Reducer for document upload workflow
+interface UploadState {
+  selectedFile: File | null;
+  validationError: string | null;
+  isUploading: boolean;
+}
+
+type UploadAction =
+  | { type: 'SELECT_FILE'; payload: File }
+  | { type: 'CLEAR_FILE' }
+  | { type: 'SET_VALIDATION_ERROR'; payload: string }
+  | { type: 'START_UPLOADING' }
+  | { type: 'UPLOAD_SUCCESS' }
+  | { type: 'UPLOAD_FAILURE' };
+
+const initialUploadState: UploadState = {
+  selectedFile: null,
+  validationError: null,
+  isUploading: false,
+};
+
+function uploadReducer(state: UploadState, action: UploadAction): UploadState {
+  switch (action.type) {
+    case 'SELECT_FILE':
+      return { ...state, selectedFile: action.payload, validationError: null };
+    case 'CLEAR_FILE':
+      return { ...state, selectedFile: null, validationError: null };
+    case 'SET_VALIDATION_ERROR':
+      return { ...state, selectedFile: null, validationError: action.payload };
+    case 'START_UPLOADING':
+      return { ...state, isUploading: true, validationError: null };
+    case 'UPLOAD_SUCCESS':
+      return { ...state, isUploading: false, selectedFile: null, validationError: null };
+    case 'UPLOAD_FAILURE':
+      return { ...state, isUploading: false };
+    default:
+      return state;
+  }
+}
+
+export const DocumentManager = memo(function DocumentManager() {
   const {
     documents,
     isLoading,
@@ -25,60 +65,48 @@ export function DocumentManager() {
     clearError,
   } = useDocument();
 
-  // Local UI States
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [state, dispatch] = useReducer(uploadReducer, initialUploadState);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setValidationError(null);
     clearError();
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      
-      // Validation: Must be PDF
+
       if (file.type !== 'application/pdf') {
-        setValidationError('Only PDF documents are supported.');
-        setSelectedFile(null);
-        return;
-      }
-      
-      // Validation: Max 20MB
-      if (file.size > 20 * 1024 * 1024) {
-        setValidationError('File size exceeds the 20MB limit.');
-        setSelectedFile(null);
+        dispatch({ type: 'SET_VALIDATION_ERROR', payload: 'Only PDF documents are supported.' });
         return;
       }
 
-      setSelectedFile(file);
+      if (file.size > 20 * 1024 * 1024) {
+        dispatch({ type: 'SET_VALIDATION_ERROR', payload: 'File size exceeds the 20MB limit.' });
+        return;
+      }
+
+      dispatch({ type: 'SELECT_FILE', payload: file });
     }
   };
 
   const handleUploadSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setValidationError(null);
     clearError();
 
-    if (!selectedFile) {
-      setValidationError('Please select a PDF file first.');
+    if (!state.selectedFile) {
+      dispatch({ type: 'SET_VALIDATION_ERROR', payload: 'Please select a PDF file first.' });
       return;
     }
 
-    setIsUploading(true);
+    dispatch({ type: 'START_UPLOADING' });
     try {
-      await uploadDocument(selectedFile);
-      setSelectedFile(null);
-      // Reset file input element manually
+      await uploadDocument(state.selectedFile);
+      dispatch({ type: 'UPLOAD_SUCCESS' });
       const fileInput = document.getElementById('pdf-file') as HTMLInputElement | null;
       if (fileInput) fileInput.value = '';
     } catch (err) {
       console.error('File upload failed:', err);
-    } finally {
-      setIsUploading(false);
+      dispatch({ type: 'UPLOAD_FAILURE' });
     }
   };
 
-  // TanStack Table Column Definitions
   const columns = useMemo<ColumnDef<DocumentItem>[]>(
     () => [
       {
@@ -154,14 +182,12 @@ export function DocumentManager() {
     <section aria-labelledby="doc-manager-title" style={{ marginTop: '10px' }}>
       <h3 id="doc-manager-title" style={{ marginBottom: '15px' }}>Document Manager</h3>
 
-      {/* Error state alert */}
-      {(validationError || apiError) && (
+      {(state.validationError || apiError) && (
         <div role="alert" style={{ color: 'red', margin: '15px 0', fontSize: '0.9em' }}>
-          <p>{validationError || apiError}</p>
+          <p>{state.validationError || apiError}</p>
         </div>
       )}
 
-      {/* Upload PDF Card */}
       <div style={{ background: '#fafafa', padding: '16px', borderRadius: '8px', border: '1px dashed #ccc', marginBottom: '20px' }}>
         <form onSubmit={handleUploadSubmit}>
           <label htmlFor="pdf-file" style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9em' }}>
@@ -173,21 +199,20 @@ export function DocumentManager() {
               type="file"
               accept=".pdf,application/pdf"
               onChange={handleFileChange}
-              disabled={isLoading || isUploading}
+              disabled={isLoading || state.isUploading}
               style={{ flex: 1 }}
             />
-            <button 
-              type="submit" 
-              disabled={!selectedFile || isLoading || isUploading}
+            <button
+              type="submit"
+              disabled={!state.selectedFile || isLoading || state.isUploading}
               style={{ padding: '8px 16px', cursor: 'pointer', background: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600' }}
             >
-              {isUploading ? 'Uploading...' : 'Upload File'}
+              {state.isUploading ? 'Uploading...' : 'Upload File'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Documents TanStack Table */}
       <DataTable
         columns={columns}
         data={documents}
@@ -198,5 +223,6 @@ export function DocumentManager() {
       />
     </section>
   );
-}
+});
+
 export default DocumentManager;

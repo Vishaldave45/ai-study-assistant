@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { useAuth } from '../hooks/useAuth';
 import { WorkspaceModal } from './WorkspaceModal.tsx';
 import type { WorkspaceSummary } from '../types/workspace.ts';
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const { workspaces, activeWorkspace, selectWorkspace } = useWorkspace();
   const { logout, user } = useAuth();
 
@@ -151,5 +151,5 @@ export function Sidebar() {
       )}
     </aside>
   );
-}
+});
 export default Sidebar;

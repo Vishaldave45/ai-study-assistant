@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -41,7 +41,7 @@ interface DataTableProps<TData, TValue> {
   onDeleteSelectedRows?: (selectedRows: TData[]) => void;
 }
 
-export function DataTable<TData, TValue>({
+function InnerDataTable<TData, TValue>({
   columns,
   data,
   title,
@@ -261,3 +261,6 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+export const DataTable = memo(InnerDataTable) as typeof InnerDataTable;
+export default DataTable;

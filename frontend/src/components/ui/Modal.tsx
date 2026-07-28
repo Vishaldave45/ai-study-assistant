@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -8,7 +9,7 @@ export interface ModalProps {
   children: ReactNode;
 }
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export const Modal = memo(function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null;
 
   return createPortal(
@@ -64,6 +65,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     </div>,
     document.body
   );
-}
+});
 
 export default Modal;
