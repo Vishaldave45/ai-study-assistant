@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import type { KeyboardEvent, UIEvent } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useChatInfiniteQuery } from '../hooks/useChatInfiniteQuery';
 
-export function ChatInterface() {
+export const ChatInterface = memo(function ChatInterface() {
   const {
     conversations,
     activeConversation,
@@ -264,6 +264,6 @@ export function ChatInterface() {
       </main>
     </div>
   );
-}
+});
 
 export default ChatInterface;

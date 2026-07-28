@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 
 interface CardProps {
   children: ReactNode;
 }
 
-export function Card({ children }: CardProps) {
+export const Card = memo(function Card({ children }: CardProps) {
   return (
     <div
       style={{
@@ -18,6 +19,6 @@ export function Card({ children }: CardProps) {
       {children}
     </div>
   );
-}
+});
 
 export default Card;

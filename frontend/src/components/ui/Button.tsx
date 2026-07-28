@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
@@ -11,7 +12,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: ReactNode;
 }
 
-export function Button({
+export const Button = memo(function Button({
   children,
   variant = 'primary',
   size = 'md',
@@ -90,6 +91,6 @@ export function Button({
       {!isLoading && rightIcon}
     </button>
   );
-}
+});
 
 export default Button;
