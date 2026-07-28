@@ -7,11 +7,8 @@ const mockWorkspace: WorkspaceSummary = {
   id: 'ws-123',
   name: 'Physics 101',
   description: 'Introductory Mechanics',
-  document_count: 5,
-  summary_count: 2,
-  created_at: '2026-01-01T00:00:00Z',
-  updated_at: '2026-01-01T00:00:00Z',
 };
+
 
 describe('WorkspaceModal Component', () => {
   it('renders dialog landmark and create mode form inputs', () => {
