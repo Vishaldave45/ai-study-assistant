@@ -3,15 +3,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
 import ProtectedRoute from './routes/ProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
-import PageLoader from './components/feedback/PageLoader';
-import Card from './components/Card';
-import Sidebar from './components/Sidebar';
-import { DocumentManager } from './components/Documentmanager';
-import { ChatInterface } from './components/ChatInterface'; 
-import { SummaryGenerator } from './components/SummaryGenerator';
-import { AiUsageTable } from './components/AiUsageTable';
-
-import ErrorBoundary from './components/feedback/ErrorBoundary';
+import {
+  PageLoader,
+  Card,
+  Sidebar,
+  DocumentManager,
+  ChatInterface,
+  SummaryGenerator,
+  AiUsageTable,
+  ErrorBoundary,
+} from './components';
 
 // Route-level Code Splitting (React.lazy)
 const Login = lazy(() => import('./pages/Login'));

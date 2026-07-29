@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { InputField } from '../components/FormField';
+import { InputField } from '../components';
 import { forgotPasswordSchema } from '../modules/Auth/validation-schema/forgot-password.schema';
 import type { ForgotPasswordFormData } from '../modules/Auth/validation-schema/forgot-password.schema';
 

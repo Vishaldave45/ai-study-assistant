@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import type { SavedSummary } from '../types/summary';
+import type { SavedSummary } from '../../types/summary';
 
 interface SummaryBookletModalProps {
   isOpen: boolean;

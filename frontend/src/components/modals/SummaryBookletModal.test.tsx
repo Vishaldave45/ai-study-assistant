@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, userEvent } from '../test/test-utils';
+import { render, screen, userEvent } from '../../test/test-utils';
 import { SummaryBookletModal } from './SummaryBookletModal';
-import type { SavedSummary } from '../types/summary';
+import type { SavedSummary } from '../../types/summary';
 
 const mockSummary: SavedSummary = {
   id: 'sum-1',

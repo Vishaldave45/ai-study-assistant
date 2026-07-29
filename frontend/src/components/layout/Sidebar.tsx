@@ -1,8 +1,8 @@
 import { useState, memo } from 'react';
-import { useWorkspace } from '../hooks/useWorkspace';
-import { useAuth } from '../hooks/useAuth';
-import { WorkspaceModal } from './WorkspaceModal.tsx';
-import type { WorkspaceSummary } from '../types/workspace.ts';
+import { useWorkspace } from '../../hooks/useWorkspace';
+import { useAuth } from '../../hooks/useAuth';
+import { WorkspaceModal } from '../modals/WorkspaceModal';
+import type { WorkspaceSummary } from '../../types/workspace';
 
 export const Sidebar = memo(function Sidebar() {
   const { workspaces, activeWorkspace, selectWorkspace } = useWorkspace();

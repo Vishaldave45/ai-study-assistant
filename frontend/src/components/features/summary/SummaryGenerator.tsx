@@ -1,12 +1,12 @@
 import { useState, useEffect, memo } from 'react';
 import axios from 'axios';
-import { useWorkspace } from '../hooks/useWorkspace';
-import { useDocument } from '../hooks/useDocument';
-import { summaryApi } from '../api/summary';
-import { summaryStorage } from '../utils/summaryStorage';
-import { usageTracker } from '../utils/usageTracker';
+import { useWorkspace } from '../../../hooks/useWorkspace';
+import { useDocument } from '../../../hooks/useDocument';
+import { summaryApi } from '../../../api/summary';
+import { summaryStorage } from '../../../utils/summaryStorage';
+import { usageTracker } from '../../../utils/usageTracker';
 import { SummaryLibraryTable } from './SummaryLibraryTable';
-import type { SummaryTemplateType, SummaryResponse, SavedSummary } from '../types/summary';
+import type { SummaryTemplateType, SummaryResponse, SavedSummary } from '../../../types/summary';
 
 interface TemplateOption {
   type: SummaryTemplateType;

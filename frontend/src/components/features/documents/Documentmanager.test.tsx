@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, userEvent, fireEvent } from '../test/test-utils';
+import { render, screen, userEvent, fireEvent } from '../../../test/test-utils';
 import { DocumentManager } from './Documentmanager';
 
 describe('DocumentManager Component', () => {

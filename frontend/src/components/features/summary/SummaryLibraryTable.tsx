@@ -1,8 +1,8 @@
 import { useState, useMemo, memo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { DataTable } from './DataTable/DataTable';
-import { SummaryBookletModal } from './SummaryBookletModal';
-import type { SavedSummary } from '../types/summary';
+import { DataTable } from '../../common/DataTable/DataTable';
+import { SummaryBookletModal } from '../../modals/SummaryBookletModal';
+import type { SavedSummary } from '../../../types/summary';
 
 interface SummaryLibraryTableProps {
   summaries: SavedSummary[];

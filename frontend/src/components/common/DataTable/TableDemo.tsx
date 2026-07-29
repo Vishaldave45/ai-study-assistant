@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { DataTable } from './DataTable';
-import { useServerDocumentsQuery } from '../../hooks/useServerDocumentsQuery';
-import { useWorkspace } from '../../hooks/useWorkspace';
-import type { DocumentItem } from '../../types/document.ts';
+import { useServerDocumentsQuery } from '../../../hooks/useServerDocumentsQuery';
+import { useWorkspace } from '../../../hooks/useWorkspace';
+import type { DocumentItem } from '../../../types/document';
 
 // Sample mock data for client-side table demonstration
 interface StudyMaterial {

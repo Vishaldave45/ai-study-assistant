@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, userEvent } from '../test/test-utils';
+import { render, screen, userEvent } from '../../test/test-utils';
 import { WorkspaceModal } from './WorkspaceModal';
-import type { WorkspaceSummary } from '../types/workspace';
+import type { WorkspaceSummary } from '../../types/workspace';
 
 const mockWorkspace: WorkspaceSummary = {
   id: 'ws-123',
