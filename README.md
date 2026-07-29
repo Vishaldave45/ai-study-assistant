@@ -13,7 +13,8 @@ Upload study materials, organize them into workspaces, inspect documents with sm
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![TanStack](https://img.shields.io/badge/TanStack-Table%20%26%20Query-FF4154?logo=reactquery&logoColor=white)](https://tanstack.com/)
 [![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
-[![Vitest](https://img.shields.io/badge/Vitest-27%2F27%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-69%2F69%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-2%2F2%20Passed-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![Pytest](https://img.shields.io/badge/Pytest-138%2F138%20Passed-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -29,10 +30,10 @@ Upload study materials, organize them into workspaces, inspect documents with sm
 
 **AI Study Assistant** is an enterprise-grade full-stack platform that enables students, researchers, and technical professionals to ingest complex study materials and ask grounded questions using **Retrieval-Augmented Generation (RAG)**.
 
-The frontend is built with a modular domain-driven React architecture (`src/modules/`), headless TanStack Data Tables with server-side/client-side mode, React Hook Form + Yup schema validation, Redux Toolkit, base Axios client wrappers, and complete Vitest + Playwright test suites.
+The frontend is built with a modular domain-driven React architecture, headless TanStack Data Tables with server-side/client-side mode, React Hook Form + Yup schema validation, Redux Toolkit, base Axios client wrappers, and complete Vitest + Playwright test suites.
 
 > [!TIP]
-> **Production Optimization**: Route-level code splitting (`React.lazy` + `Suspense`) keeps the initial bundle size under **138 kB gzip** for ultra-fast startup performance!
+> **Production Optimization**: Route-level code splitting (`React.lazy` + `Suspense`) keeps the initial bundle size under **163 kB gzip** for ultra-fast startup performance!
 
 ---
 
@@ -59,8 +60,8 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
 <details open>
 <summary><b>📝 3. AI Summaries Library & Master Booklet Exporter</b></summary>
 
-- **Automatic Summary Generator** for ingested workspace documents.
-- **Summaries Library Table**: Interactive filtering by file format (`PDF`, `DOCX`, `TXT`, `MD`), title search, and date sorting.
+- **Automatic Summary Generator** for ingested workspace documents with 5 study format options (`short`, `detailed`, `bullet`, `revision_notes`, `key_takeaways`).
+- **Summaries Library Table**: Interactive filtering by file format, title search, and date sorting.
 - **Master Revision Booklet Exporter**: Select multiple summaries and export them as a single compiled Markdown booklet (`.md`) or copy to clipboard.
 
 </details>
@@ -69,7 +70,7 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
 <summary><b>⚡ 4. AI Usage & Token Analytics Dashboard</b></summary>
 
 - **Real-time Cost & Token Logger**: Auto-instruments RAG Chat & AI Summarizer queries.
-- **KPI Metrics Cards**: **Total Queries**, **Total Tokens Used**, **Estimated Cost ($)**, and **Avg Latency (ms)**.
+- **KPI Metrics Cards**: **Total Queries**, **Total Tokens Used**, **Estimated Cost ($)**, and **Avg Latency (s)**.
 - Granular token logs table tracking model usage (`gemini-2.5-flash`).
 
 </details>
@@ -79,8 +80,7 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
 
 - **Multi-session RAG Chat Conversations** with history persistence.
 - **Paginated Message History**: Powered by TanStack Query (`useChatInfiniteQuery`) with top-scroll auto-loading.
-- **Interactive Prompt Chips**: One-click study actions (e.g. _Summarize Key Concepts_, _Practice Exam Questions_, _Extract Terminology_).
-- **Page Citations**: Grounded answer references with exact page numbers.
+- **Page Citations**: Grounded answer references with exact document names and confidence match scores.
 
 </details>
 
@@ -101,7 +101,7 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
                └───────────────┬───────────────┘
                                │ (REST API / Bearer JWT)
                                ▼
-                        FastAPI Server
+                         FastAPI Server
                                │
        ┌───────────────────────┼───────────────────────┐
        ▼                       ▼                       ▼
@@ -176,16 +176,16 @@ ai-study-assistant/
     ├── src/
     │   ├── api/              # Axios & TanStack Query services
     │   ├── base-axios/       # Standardized Axios client & ExtendedResponse wrappers
-    │   ├── components/       # Reusable primitives (Button, Modal, ErrorBoundary, DataTable, FormField)
+    │   ├── components/       # Reusable primitives & features (Button, Modal, ErrorBoundary, DataTable, Chat, Summary)
     │   ├── constants/        # HTTP status & navigation route constants
     │   ├── contexts/         # React Context API (Auth, Workspace, Document, Chat)
-    │   ├── hooks/            # Custom hooks (useAxios, useChatInfiniteQuery, useAuth, useWorkspace)
+    │   ├── hooks/            # Custom hooks (useAxios, useWorkspacesQuery, useAuth, useWorkspace)
     │   ├── modules/          # Domain feature modules (Auth, Documents, Chat, Summary, Analytics)
     │   ├── pages/            # Lazy-loaded route pages (Login, Register, ForgotPassword, ResetPassword)
     │   ├── providers/        # AppProviders wrapping Redux, QueryClient, and Contexts
     │   ├── redux/            # Redux Toolkit store & slices (authSlice, workspaceSlice, uiSlice)
     │   ├── styles/           # Global CSS variables & modern design system
-    │   └── test/             # Vitest test setup and unit test specs
+    │   └── test/             # Vitest setup, MSW mock server, integration & unit test specs
     ├── playwright.config.ts  # Playwright E2E configuration
     └── vitest.config.ts      # Vitest unit test configuration
 ```
@@ -203,7 +203,7 @@ ai-study-assistant/
 | **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8)       |
 | **Forms & Validation**     | `react-hook-form`, `@hookform/resolvers`, `yup`                  |
 | **Networking**             | Axios (`base-axios` with JWT interceptors & token refresh)       |
-| **Frontend Testing**       | Vitest (27 tests passed across 8 suites), Playwright E2E         |
+| **Frontend Testing**       | Vitest (69 tests passed across 20 files), Playwright E2E (2/2)   |
 | **Backend Framework**      | Python 3.12, FastAPI, Pydantic v2                                |
 | **ORM & Database**         | SQLAlchemy, Alembic, SQLite / PostgreSQL                         |
 | **Vector Search & LLM**    | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
@@ -244,7 +244,7 @@ uvicorn app.main:app --reload
 cd frontend
 
 # Install npm dependencies
-npm install --legacy-peer-deps
+npm install
 
 # Start Vite development server
 npm run dev
@@ -257,31 +257,45 @@ npm run dev
 
 ## 🧪 Testing Suite
 
-### ⚡ Frontend Vitest Unit Tests
+### ⚡ Frontend Vitest Unit & Integration Tests
 
 ```bash
 cd frontend
-npm test
+npm run test
 ```
 
-- ✅ **27/27 Passed (8 Test Suites)**:
-  - `src/hooks/useAxios.test.ts` (2 tests)
-  - `src/components/Card.test.tsx` (1 test)
-  - `src/components/Sidebar.test.tsx` (3 tests)
-  - `src/components/Documentmanager.test.tsx` (3 tests)
-  - `src/components/WorkspaceModal.test.tsx` (4 tests)
-  - `src/components/SummaryBookletModal.test.tsx` (4 tests)
-  - `src/components/DataTable/DataTable.test.tsx` (5 tests)
+- ✅ **69/69 Passed (20 Test Files)**:
+  - `src/components/common/Button/Button.test.tsx` (5 tests)
+  - `src/components/common/Modal/Modal.test.tsx` (4 tests)
+  - `src/components/common/Card/Card.test.tsx` (1 test)
+  - `src/components/common/Heading/Heading.test.tsx` (1 test)
+  - `src/components/common/DataTable/DataTable.test.tsx` (5 tests)
+  - `src/components/layout/Sidebar.test.tsx` (3 tests)
+  - `src/components/modals/WorkspaceModal.test.tsx` (4 tests)
+  - `src/components/modals/SummaryBookletModal.test.tsx` (4 tests)
+  - `src/components/features/analytics/AiUsageTable.test.tsx` (3 tests)
+  - `src/components/features/documents/Documentmanager.test.tsx` (3 tests)
+  - `src/components/features/summary/SummaryGenerator.test.tsx` (1 test)
+  - `src/components/features/summary/SummaryLibraryTable.test.tsx` (3 tests)
+  - `src/components/features/chat/ChatInterface.test.tsx` (2 tests)
   - `src/modules/Auth/LoginForm.test.tsx` (5 tests)
+  - `src/redux/slices/authSlice.test.ts` (5 tests)
+  - `src/redux/slices/workspaceSlice.test.ts` (4 tests)
+  - `src/redux/slices/uiSlice.test.ts` (4 tests)
+  - `src/utils/summaryStorage.test.ts` (5 tests)
+  - `src/utils/usageTracker.test.ts` (5 tests)
+  - `src/hooks/useAxios.test.ts` (2 tests)
+  - `src/hooks/useWorkspacesQuery.test.ts` (1 test)
+  - `src/test/integration/mswIntegration.test.tsx` (2 tests)
 
 ### 🎭 Frontend Playwright E2E Tests
 
 ```bash
 cd frontend
-npm run test:e2e
+npx playwright test
 ```
 
-- ✅ Validates Authentication & Workspace Document management user flows.
+- ✅ **2/2 Passed**: Validates Authentication & Workspace Document management user flows in Chromium browser.
 
 ### 📦 Frontend Production Build
 
@@ -290,7 +304,7 @@ cd frontend
 npm run build
 ```
 
-- ✅ **190 modules transformed cleanly** with **0 errors and 0 warnings**.
+- ✅ **200 modules transformed cleanly** with **0 errors**.
 
 ### 🐍 Backend Pytest Suite
 
@@ -305,18 +319,20 @@ PYTHONPATH=. .venv/bin/pytest tests/
 
 ## 🛣️ Development Roadmap
 
-- [x] **JWT Authentication & Silent Token Refresh**
-- [x] **Workspace & Document Management**
-- [x] **FAISS Vector Store & Semantic Search**
-- [x] **TanStack Smart Data Table (v8)**
-- [x] **AI Summaries Library & Master Booklet Exporter**
-- [x] **AI Usage & Token Analytics Dashboard**
-- [x] **React Hook Form + Yup Schema Validation**
-- [x] **Redux Toolkit State Management**
-- [x] **Vitest Unit Tests & Playwright E2E Setup**
-- [x] **Route-Level Code Splitting (`React.lazy`)**
-- [ ] **Flashcard & Quiz Generation**
-- [ ] **Concept Knowledge Graph Visualizer**
+- [x] **Phase 1: JWT Authentication & Silent Token Refresh**
+- [x] **Phase 2: Workspace Multi-Tenant Management**
+- [x] **Phase 3: Document Upload Pipeline & Validation**
+- [x] **Phase 4: TanStack Smart Data Table (v8)**
+- [x] **Phase 5: Document Viewer & PDF REST Downloads**
+- [x] **Phase 6: RAG AI Chat & Citation Badges**
+- [x] **Phase 7: AI Summaries Library & Master Booklet Exporter**
+- [x] **Phase 8: AI Usage & Token Analytics Dashboard**
+- [x] **Phase 9: Settings & Redux UI State Management**
+- [x] **Phase 10: Reusable Core Design System Components**
+- [x] **Phase 11: Custom React Hooks & Axios Adapter**
+- [x] **Phase 12: TanStack Query Data Fetching & Caching Hooks**
+- [x] **Phase 13: MSW Integration Network Handlers**
+- [x] **Phase 14: Playwright End-to-End Browser Automation**
 
 ---
 
