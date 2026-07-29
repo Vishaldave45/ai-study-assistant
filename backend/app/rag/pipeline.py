@@ -1,7 +1,6 @@
 import logging
 from uuid import UUID
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 
 from app.database.models.document import Document
 from app.retrieval.service import RetrievalService
@@ -24,7 +23,7 @@ class RAGPipeline:
         self.db = db
         self.retrieval_service = RetrievalService(db)
         self.prompt_builder = PromptBuilder()
-        self.llm_service = LLMService(provider_type="gemini")
+        self.llm_service = LLMService()
 
     def answer_question(self, workspace_id: UUID, question: str) -> dict:
         """

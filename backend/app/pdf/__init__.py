@@ -1,12 +1,14 @@
-from .parser import PDFParser
-from .schemas import ParsedPDF
-from .exceptions import (
+from app.pdf.parser import PDFParser
+from app.pdf.schemas import ParsedPDF
+from app.engine.utils.pdf import (
     PDFParseError,
     PDFPasswordProtectedError,
     CorruptedPDFError,
     EmptyPDFError,
+    is_pdf,
+    normalize_filename,
+    safe_open_pdf,
 )
-from .utils import is_pdf, normalize_filename
 
 __all__ = [
     "PDFParser",
@@ -17,4 +19,5 @@ __all__ = [
     "EmptyPDFError",
     "is_pdf",
     "normalize_filename",
+    "safe_open_pdf",
 ]
