@@ -94,7 +94,7 @@ class DocumentService:
         data_buffer = BytesIO(file_data)
         storage.save(storage_path, data_buffer)
 
-        # 7. Create database record
+        # 7. Create database record with PROCESSING status initially
         document = Document(
             workspace_id=workspace_id,
             original_filename=file.filename or "document.pdf",
@@ -102,19 +102,17 @@ class DocumentService:
             mime_type="application/pdf",
             file_size=file_size,
             page_count=page_count,
-            status=DocumentStatus.READY,
+            status=DocumentStatus.PROCESSING,
         )
         self.documents.add(document)
 
-        # 8. Commit with rollback strategy
+        # Commit initial database record
         try:
             self.db.commit()
             self.db.refresh(document)
-            logger.info(f"Document uploaded: {document.id} in workspace {workspace_id}")
-            return document
+            logger.info(f"Document record created in PROCESSING state: {document.id}")
         except Exception as e:
             self.db.rollback()
-            # Rollback storage operation to maintain consistency
             try:
                 storage.delete(storage_path)
             except Exception as storage_err:
@@ -122,6 +120,27 @@ class DocumentService:
                     f"Failed to delete stored file {storage_path} during rollback: {storage_err}"
                 )
             raise e
+
+        # 8. Auto-index document into FAISS vector store (text chunking -> embeddings -> FAISS index)
+        try:
+            from app.vectorstore.service import VectorStoreService
+            vector_service = VectorStoreService(self.db)
+            vector_service.index_document(owner_id=owner_id, document_id=document.id)
+
+            document.status = DocumentStatus.READY
+            self.db.commit()
+            self.db.refresh(document)
+            logger.info(f"Document uploaded & auto-indexed successfully: {document.id}")
+            return document
+        except Exception as indexing_err:
+            logger.error(f"Auto-indexing failed for document {document.id}: {indexing_err}")
+            document.status = DocumentStatus.FAILED
+            try:
+                self.db.commit()
+                self.db.refresh(document)
+            except Exception:
+                self.db.rollback()
+            return document
 
     def get_document(
         self,

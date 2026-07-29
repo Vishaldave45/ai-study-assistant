@@ -60,7 +60,9 @@ class SemanticRetriever:
                 docs = self.db.execute(docs_stmt).scalars().all()
                 for doc in docs:
                     try:
-                        self.vectorstore_service.index_document(doc.owner_id, doc.id)
+                        owner_id = doc.workspace.owner_id if doc.workspace else None
+                        if owner_id:
+                            self.vectorstore_service.index_document(owner_id, doc.id)
                     except Exception as idx_err:
                         logger.warning(f"Auto-indexing doc {doc.id} failed during retrieval: {idx_err}")
 
