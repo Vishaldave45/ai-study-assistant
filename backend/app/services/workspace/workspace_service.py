@@ -2,6 +2,7 @@ import logging
 from uuid import UUID
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database.models.workspace import Workspace
 from app.exceptions.workspace import (
@@ -44,26 +45,30 @@ class WorkspaceService:
         owner_id: UUID,
         request: WorkspaceCreateRequest,
     ) -> Workspace:
-        if self.workspaces.exists_by_name(owner_id, request.name):
+        if self.workspaces.exists_by_name(owner_id, request.name.strip()):
             raise WorkspaceAlreadyExistsError(
-                f"Workspace with name '{request.name}' already exists."
+                f"Workspace with name '{request.name.strip()}' already exists."
             )
 
-        workspace = self.workspaces.create(
-            owner_id=owner_id,
-            name=request.name,
-            description=request.description,
-        )
-
         try:
+            workspace = self.workspaces.create(
+                owner_id=owner_id,
+                name=request.name.strip(),
+                description=request.description.strip() if request.description else None,
+            )
             self.db.commit()
             self.db.refresh(workspace)
             logger.info(f"Workspace Created: {workspace.id} by user {owner_id}")
+            return workspace
+        except IntegrityError as exc:
+            self.db.rollback()
+            logger.warning(f"IntegrityError on create workspace '{request.name}': {exc}")
+            raise WorkspaceAlreadyExistsError(
+                f"Workspace with name '{request.name.strip()}' already exists."
+            ) from exc
         except Exception:
             self.db.rollback()
             raise
-
-        return workspace
 
     def list_workspaces(
         self,
@@ -115,24 +120,33 @@ class WorkspaceService:
 
         self._validate_owner(workspace, owner_id, action="update")
 
-        if request.name is not None and request.name != workspace.name:
-            if self.workspaces.exists_by_name(owner_id, request.name):
+        if request.name is not None and request.name.strip() != workspace.name:
+            if self.workspaces.exists_by_name(owner_id, request.name.strip()):
                 raise WorkspaceAlreadyExistsError(
-                    f"Workspace with name '{request.name}' already exists."
+                    f"Workspace with name '{request.name.strip()}' already exists."
                 )
 
         dump_data = request.model_dump(exclude_unset=True)
+        if "name" in dump_data and dump_data["name"]:
+            dump_data["name"] = dump_data["name"].strip()
+        if "description" in dump_data and dump_data["description"]:
+            dump_data["description"] = dump_data["description"].strip()
+
         self.workspaces.update(workspace, **dump_data)
 
         try:
             self.db.commit()
             self.db.refresh(workspace)
             logger.info(f"Workspace Updated: {workspace.id} by user {owner_id}")
+            return workspace
+        except IntegrityError as exc:
+            self.db.rollback()
+            raise WorkspaceAlreadyExistsError(
+                f"Workspace with name '{request.name}' already exists."
+            ) from exc
         except Exception:
             self.db.rollback()
             raise
-
-        return workspace
 
     def delete_workspace(
         self,

@@ -1362,3 +1362,39 @@ h1, h2, h3, h4 {
   color: #0f172a;
   margin-top: 2px;
 }
+
+/* ==========================================
+   Workspace Modal Explicit High Contrast Fix
+   ========================================== */
+
+.ws-modal-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.ws-modal-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+.ws-modal-label {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  display: block !important;
+  margin-bottom: 6px !important;
+}
+
+.ws-modal-input, .ws-modal-textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #94a3b8 !important;
+}
+
+.ws-modal-input::placeholder, .ws-modal-textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
