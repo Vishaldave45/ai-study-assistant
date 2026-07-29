@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, userEvent } from '../../../test/test-utils';
+import { render, screen } from '../../../test/test-utils';
 import { ChatInterface } from './ChatInterface';
 
 describe('ChatInterface Component', () => {
@@ -11,8 +11,7 @@ describe('ChatInterface Component', () => {
     expect(screen.getByText(/no active chat sessions\./i)).toBeInTheDocument();
   });
 
-  it('renders new chat session button and allows user typing in input textarea when active', async () => {
-    const user = userEvent.setup();
+  it('renders new chat session button and enables chat interaction', () => {
     render(<ChatInterface />);
 
     const newChatBtn = screen.getByRole('button', { name: /\+ new chat/i });

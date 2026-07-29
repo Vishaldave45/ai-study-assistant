@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, userEvent } from '../../../test/test-utils';
+import { render, screen } from '../../../test/test-utils';
 import { SummaryGenerator } from './SummaryGenerator';
 
 describe('SummaryGenerator Component', () => {

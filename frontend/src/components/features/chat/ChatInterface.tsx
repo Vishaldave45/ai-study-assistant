@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import type { KeyboardEvent, UIEvent } from 'react';
 import { useChat } from '../../../hooks/useChat';
 import { useChatInfiniteQuery } from '../../../hooks/useChatInfiniteQuery';
@@ -26,6 +26,7 @@ export const ChatInterface = memo(function ChatInterface() {
 
   // TanStack Infinite Query for Chat Message Pagination
   const {
+    data: infiniteData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -34,16 +35,23 @@ export const ChatInterface = memo(function ChatInterface() {
     activeConversation?.id || null
   );
 
+  // Flatten paginated messages from TanStack Query cache, falling back to active context messages
+  const displayMessages = useMemo(() => {
+    if (!infiniteData?.pages || infiniteData.pages.length === 0) return messages;
+    const paginated = infiniteData.pages.flatMap((page) => page.messages || []);
+    return paginated.length > 0 ? paginated : messages;
+  }, [infiniteData, messages]);
+
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   };
 
-  // Auto-scroll to the bottom of the chat list when messages arrive
+  // Auto-scroll to the bottom of the chat list when new user message is sent
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isSending]);
+  }, [displayMessages.length, isSending]);
 
   const handleSend = () => {
     if (!input.trim() || isSending) return;
@@ -180,14 +188,14 @@ export const ChatInterface = memo(function ChatInterface() {
                   ⏳ Loading older message history...
                 </div>
               )}
-              {messages.length === 0 ? (
+              {displayMessages.length === 0 ? (
                 <div className="chat-empty-state">
                   <span className="chat-empty-icon">💬</span>
                   <h3>Start the Conversation</h3>
                   <p>Ask a question about the uploaded documents in this workspace.</p>
                 </div>
               ) : (
-                messages.map((msg) => {
+                displayMessages.map((msg) => {
                   const isUser = msg.role === 'USER';
                   return (
                     <div
