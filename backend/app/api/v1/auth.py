@@ -74,9 +74,6 @@ def login(
     http_request: Request,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
-    print("=" * 50)
-    print(request)
-    print(type(request))
     service = AuthService(db)
 
     try:
@@ -207,4 +204,3 @@ def reset_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
-
