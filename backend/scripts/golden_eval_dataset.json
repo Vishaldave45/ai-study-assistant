@@ -1,0 +1,17 @@
+[
+  {
+    "query": "What is the architecture of the neural network?",
+    "target_document": "ai_intro.pdf",
+    "target_keywords": ["neural", "architecture", "network", "deep learning"]
+  },
+  {
+    "query": "How does photosynthesis convert light into energy?",
+    "target_document": "biology_notes.pdf",
+    "target_keywords": ["photosynthesis", "chlorophyll", "light", "energy"]
+  },
+  {
+    "query": "What is two factor authentication in gitlab?",
+    "target_document": "Two-factor Authentication · Account · User Settings · GitLab.pdf",
+    "target_keywords": ["two-factor", "authentication", "gitlab", "user settings", "account"]
+  }
+]
