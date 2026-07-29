@@ -1,7 +1,10 @@
 import time
+import logging
 from app.llm.factory import LLMFactory
 from app.llm.schemas import LLMResponse
 from app.llm.exceptions import LLMError, LLMRateLimit
+
+logger = logging.getLogger(__name__)
 
 
 class LLMService:

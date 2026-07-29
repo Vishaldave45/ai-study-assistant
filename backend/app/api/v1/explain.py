@@ -10,6 +10,7 @@ from app.schemas.explain.response import ExplainResponse
 from app.services.explain.service import ExplainService
 from app.exceptions.workspace import WorkspaceNotFoundError, WorkspaceAccessDeniedError
 from app.exceptions.document import DocumentNotFoundError, DocumentAccessDeniedError
+from app.llm.exceptions import LLMRateLimit
 
 router = APIRouter(prefix="/explain", tags=["Explain"])
 logger = logging.getLogger(__name__)
@@ -29,10 +30,6 @@ def explain_concept(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ExplainResponse:
-    """
-    Explain study concepts at varying depths (beginner, intermediate, advanced, interview, analogy) 
-    using indexed workspace document chunks.
-    """
     try:
         service = ExplainService(db)
         return service.explain_concept(
@@ -60,12 +57,23 @@ def explain_concept(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
         ) from exc
+    except LLMRateLimit as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
     except Exception as exc:
+        err_str = str(exc).lower()
+        if "rate limit" in err_str or "429" in err_str or "quota" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+            ) from exc
         logger.error(f"Unexpected error in explain_concept: {exc}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

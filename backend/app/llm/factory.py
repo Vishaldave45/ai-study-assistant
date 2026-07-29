@@ -7,7 +7,7 @@ class LLMFactory:
     @staticmethod
     def create(provider_type: str = "gemini") -> LLMProvider:
         """
-        Instantiate and return the requested LLM provider.
+        Instantiate and return the requested LLM provider strategy.
         """
         p_type = provider_type.lower()
         if p_type == "gemini":

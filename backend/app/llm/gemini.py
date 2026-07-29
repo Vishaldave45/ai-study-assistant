@@ -15,11 +15,12 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(LLMProvider):
 
-    def __init__(self):
-        if not settings.GEMINI_API_KEY:
+    def _get_client(self) -> genai.Client:
+        api_key = getattr(settings, "GEMINI_API_KEY", "")
+        if not api_key:
             raise LLMError("GEMINI_API_KEY environment variable is not set.")
         try:
-            self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            return genai.Client(api_key=api_key)
         except Exception as e:
             logger.error(f"Failed to initialize Gemini Client: {e}")
             raise LLMError(f"Failed to initialize Gemini Client: {e}") from e
@@ -28,13 +29,15 @@ class GeminiProvider(LLMProvider):
         if not prompt:
             raise LLMError("Prompt cannot be empty.")
 
+        client = self._get_client()
+
         try:
             config = types.GenerateContentConfig(
                 temperature=TEMPERATURE,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
                 top_p=TOP_P,
             )
-            response = self.client.models.generate_content(
+            response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=prompt,
                 config=config,
@@ -89,13 +92,15 @@ class GeminiProvider(LLMProvider):
         if not prompt:
             raise LLMError("Prompt cannot be empty.")
 
+        client = self._get_client()
+
         try:
             config = types.GenerateContentConfig(
                 temperature=TEMPERATURE,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
                 top_p=TOP_P,
             )
-            response_stream = self.client.models.generate_content_stream(
+            response_stream = client.models.generate_content_stream(
                 model=GEMINI_MODEL,
                 contents=prompt,
                 config=config,

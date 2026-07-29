@@ -10,6 +10,7 @@ from app.schemas.summary.response import SummaryResponse
 from app.services.summary.service import SummaryService
 from app.exceptions.workspace import WorkspaceNotFoundError, WorkspaceAccessDeniedError
 from app.exceptions.document import DocumentNotFoundError, DocumentAccessDeniedError
+from app.llm.exceptions import LLMRateLimit
 
 router = APIRouter(prefix="/summary", tags=["Summary"])
 logger = logging.getLogger(__name__)
@@ -28,10 +29,6 @@ def generate_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> SummaryResponse:
-    """
-    Generate study summaries of various formats (short, detailed, bullet, revision notes, takeaways) 
-    using indexed document chunks from a workspace.
-    """
     try:
         service = SummaryService(db)
         return service.generate_summary(
@@ -59,12 +56,23 @@ def generate_summary(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
         ) from exc
+    except LLMRateLimit as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
     except Exception as exc:
+        err_str = str(exc).lower()
+        if "rate limit" in err_str or "429" in err_str or "quota" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+            ) from exc
         logger.error(f"Unexpected error in generate_summary: {exc}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,6 +1,6 @@
+import os
 from pathlib import Path
 from functools import lru_cache
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -28,9 +28,18 @@ class Settings(BaseSettings):
     )
 
 
-@lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    """Return latest Settings reading directly from app/.env."""
+    return Settings(_env_file=BASE_DIR / "app" / ".env")
 
 
-settings = get_settings()
+class DynamicSettings:
+    """Proxy class that resolves settings dynamically."""
+    def __getattr__(self, name: str):
+        # Allow direct environment variable override (e.g. GEMINI_API_KEY)
+        if name in os.environ:
+            return os.environ[name]
+        return getattr(get_settings(), name)
+
+
+settings = DynamicSettings()

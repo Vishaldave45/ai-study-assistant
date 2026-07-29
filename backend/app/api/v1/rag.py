@@ -8,6 +8,7 @@ from app.database.models.user import User
 from app.rag.schemas import QuestionRequest, AnswerResponse
 from app.rag.service import RAGService
 from app.rag.exceptions import WorkspaceNotFound, RAGException, GenerationFailed
+from app.llm.exceptions import LLMRateLimit
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
 logger = logging.getLogger(__name__)
@@ -33,17 +34,34 @@ def query_workspace(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(exc),
         ) from exc
+    except LLMRateLimit as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+        ) from exc
     except RAGException as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
     except GenerationFailed as exc:
+        err_str = str(exc).lower()
+        if "rate limit" in err_str or "429" in err_str or "quota" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
     except Exception as exc:
+        err_str = str(exc).lower()
+        if "rate limit" in err_str or "429" in err_str or "quota" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini rate limit exceeded (20 RPM free tier limit). Please retry in a few seconds.",
+            ) from exc
         logger.error(f"Unexpected error in /rag/query: {exc}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -61,27 +79,21 @@ def rag_health(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
-    # 1. Check embedding engine by ensuring it is importable
     try:
         from app.embedding.service import EmbeddingService
-
         embedding_status = "loaded"
     except Exception:
         embedding_status = "error"
 
-    # 2. Check vector store
     try:
         from app.vectorstore.faiss_store import FAISSVectorStore
-
         store = FAISSVectorStore()
         vector_status = "loaded"
     except Exception:
         vector_status = "error"
 
-    # 3. Check LLM Layer
     try:
         from app.llm.service import LLMService
-
         llm_status = "connected"
     except Exception:
         llm_status = "disconnected"
