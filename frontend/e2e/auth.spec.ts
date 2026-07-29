@@ -7,13 +7,14 @@ test.describe('Authentication E2E Flow', () => {
     await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
 
     const emailInput = page.getByLabel(/email address/i);
-    const passwordInput = page.getByLabel(/password/i);
+    const passwordInput = page.locator('input#password');
     const submitBtn = page.getByRole('button', { name: /log in/i });
 
     await emailInput.fill('test@example.com');
     await passwordInput.fill('password123');
 
     await expect(emailInput).toHaveValue('test@example.com');
+    await expect(passwordInput).toHaveValue('password123');
     await expect(submitBtn).toBeEnabled();
   });
 });
