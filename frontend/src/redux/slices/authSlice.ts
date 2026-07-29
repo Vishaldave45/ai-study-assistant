@@ -16,10 +16,17 @@ export interface AuthState {
   isLoading: boolean;
 }
 
+const getStoredToken = () => {
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+  return null;
+};
+
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem(ACCESS_TOKEN_KEY),
-  isAuthenticated: Boolean(localStorage.getItem(ACCESS_TOKEN_KEY)),
+  token: getStoredToken(),
+  isAuthenticated: Boolean(getStoredToken()),
   isLoading: false,
 };
 
@@ -35,8 +42,10 @@ export const authSlice = createSlice({
       state.user = user;
       state.token = access_token;
       state.isAuthenticated = true;
-      localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
-      localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
+        localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
+      }
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
@@ -46,8 +55,10 @@ export const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;

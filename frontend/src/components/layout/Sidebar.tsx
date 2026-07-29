@@ -1,10 +1,16 @@
 import { useState, memo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useAuth } from '../../hooks/useAuth';
 import { WorkspaceModal } from '../modals/WorkspaceModal';
+import { toggleTheme } from '../../redux/slices/uiSlice';
+import type { RootState, AppDispatch } from '../../redux/store';
 import type { WorkspaceSummary } from '../../types/workspace';
 
 export const Sidebar = memo(function Sidebar() {
+  const dispatch = useDispatch<AppDispatch>();
+  const theme = useSelector((state: RootState) => state.ui.theme);
+
   const { workspaces, activeWorkspace, selectWorkspace } = useWorkspace();
   const { logout, user } = useAuth();
 
@@ -28,17 +34,34 @@ export const Sidebar = memo(function Sidebar() {
         width: '260px', 
         borderRight: '1px solid #ccc', 
         padding: '20px', 
-        background: '#fff', 
+        background: theme === 'dark' ? '#1e293b' : '#ffffff', 
+        color: theme === 'dark' ? '#f8fafc' : '#0f172a',
         display: 'flex', 
         flexDirection: 'column' 
       }} 
       aria-label="Sidebar navigation"
     >
-      <div>
-        <h3>Hello, {user?.full_name}</h3>
-        <p style={{ fontSize: '0.85em', color: '#666', marginBottom: '20px' }}>
-          {user?.email}
-        </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Hello, {user?.full_name}</h3>
+          <p style={{ fontSize: '0.85em', color: theme === 'dark' ? '#94a3b8' : '#666', marginBottom: '20px' }}>
+            {user?.email}
+          </p>
+        </div>
+        <button
+          onClick={() => dispatch(toggleTheme())}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          style={{
+            padding: '4px 8px',
+            borderRadius: '4px',
+            border: 'none',
+            background: theme === 'dark' ? '#334155' : '#e2e8f0',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+          }}
+        >
+          {theme === 'dark' ? '🌙' : '☀️'}
+        </button>
       </div>
 
       <nav aria-labelledby="workspaces-heading" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -74,7 +97,8 @@ export const Sidebar = memo(function Sidebar() {
                     margin: '4px 0',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    background: isActive ? '#e0f0ff' : 'transparent',
+                    background: isActive ? (theme === 'dark' ? '#3b82f6' : '#e0f0ff') : 'transparent',
+                    color: isActive && theme === 'dark' ? '#ffffff' : 'inherit',
                     fontWeight: isActive ? 'bold' : 'normal',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -152,4 +176,5 @@ export const Sidebar = memo(function Sidebar() {
     </aside>
   );
 });
+
 export default Sidebar;

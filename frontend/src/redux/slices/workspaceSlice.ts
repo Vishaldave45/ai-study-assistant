@@ -7,8 +7,15 @@ export interface WorkspaceState {
   selectedFileFormatFilter: string;
 }
 
+const getStoredWorkspaceId = () => {
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('ai_study_active_workspace') || null;
+  }
+  return null;
+};
+
 const initialState: WorkspaceState = {
-  activeWorkspaceId: localStorage.getItem('ai_study_active_workspace') || null,
+  activeWorkspaceId: getStoredWorkspaceId(),
   searchQuery: '',
   selectedFileFormatFilter: 'ALL',
 };
@@ -19,10 +26,12 @@ export const workspaceSlice = createSlice({
   reducers: {
     setActiveWorkspaceId: (state, action: PayloadAction<string | null>) => {
       state.activeWorkspaceId = action.payload;
-      if (action.payload) {
-        localStorage.setItem('ai_study_active_workspace', action.payload);
-      } else {
-        localStorage.removeItem('ai_study_active_workspace');
+      if (typeof localStorage !== 'undefined') {
+        if (action.payload) {
+          localStorage.setItem('ai_study_active_workspace', action.payload);
+        } else {
+          localStorage.removeItem('ai_study_active_workspace');
+        }
       }
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
