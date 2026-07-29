@@ -13,9 +13,9 @@ Upload study materials, organize them into workspaces, inspect documents with sm
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![TanStack](https://img.shields.io/badge/TanStack-Table%20%26%20Query-FF4154?logo=reactquery&logoColor=white)](https://tanstack.com/)
 [![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
-[![Vitest](https://img.shields.io/badge/Vitest-69%2F69%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/Playwright-2%2F2%20Passed-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
-[![Pytest](https://img.shields.io/badge/Pytest-138%2F138%20Passed-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-72%2F72%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-5%2F5%20Passed-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Pytest](https://img.shields.io/badge/Pytest-144%2F144%20Passed-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
@@ -49,11 +49,11 @@ The frontend is built with a modular domain-driven React architecture, headless 
 </details>
 
 <details open>
-<summary><b>📁 2. Smart Data Table Document Management</b></summary>
+<summary><b>📁 2. Smart Data Table Document Management & Auto-Indexing Pipeline</b></summary>
 
 - **Powered by @tanstack/react-table (v8)**.
+- **Automatic Document Vector Indexing**: Uploaded PDFs automatically transition through `PROCESSING` -> text chunking -> SentenceTransformers embedding generation -> FAISS vector indexing -> `READY` state.
 - Global search, per-column text filtering, multi-column sorting, row selection checkboxes, and pagination.
-- Instant preview, metadata inspection, and batch deletion.
 
 </details>
 
@@ -167,12 +167,14 @@ ai-study-assistant/
 │   │   ├── api/v1/           # REST endpoints (auth, workspace, document, chat, summary)
 │   │   ├── core/             # Pydantic Settings & security config
 │   │   ├── database/         # SQLAlchemy session & models
+│   │   ├── llm/              # LLM providers, service, and FakeProvider test double
 │   │   ├── rag/              # Vector store, chunking, FAISS retriever, prompts
-│   │   └── services/         # Business logic services
-│   └── tests/                # Pytest test suite (138 tests)
+│   │   └── services/         # Business logic services (DocumentService with auto-indexing)
+│   ├── scripts/              # Evaluation & benchmark tools (eval_retrieval.py)
+│   └── tests/                # Pytest test suite (144 tests across 26 files)
 │
 └── frontend/
-    ├── e2e/                  # Playwright E2E test specs (auth.spec.ts, documents.spec.ts)
+    ├── e2e/                  # Playwright E2E test specs (auth, documents, chat, summary, analytics)
     ├── src/
     │   ├── api/              # Axios & TanStack Query services
     │   ├── base-axios/       # Standardized Axios client & ExtendedResponse wrappers
@@ -183,7 +185,7 @@ ai-study-assistant/
     │   ├── modules/          # Domain feature modules (Auth, Documents, Chat, Summary, Analytics)
     │   ├── pages/            # Lazy-loaded route pages (Login, Register, ForgotPassword, ResetPassword)
     │   ├── providers/        # AppProviders wrapping Redux, QueryClient, and Contexts
-    │   ├── redux/            # Redux Toolkit store & slices (authSlice, workspaceSlice, uiSlice)
+    │   ├── redux/            # Redux Toolkit store & slices (uiSlice)
     │   ├── styles/           # Global CSS variables & modern design system
     │   └── test/             # Vitest setup, MSW mock server, integration & unit test specs
     ├── playwright.config.ts  # Playwright E2E configuration
@@ -203,11 +205,11 @@ ai-study-assistant/
 | **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8)       |
 | **Forms & Validation**     | `react-hook-form`, `@hookform/resolvers`, `yup`                  |
 | **Networking**             | Axios (`base-axios` with JWT interceptors & token refresh)       |
-| **Frontend Testing**       | Vitest (69 tests passed across 20 files), Playwright E2E (2/2)   |
+| **Frontend Testing**       | Vitest (72 tests passed across 22 files), Playwright E2E (5/5)   |
 | **Backend Framework**      | Python 3.12, FastAPI, Pydantic v2                                |
 | **ORM & Database**         | SQLAlchemy, Alembic, SQLite / PostgreSQL                         |
 | **Vector Search & LLM**    | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
-| **Backend Testing**        | Pytest (138 tests passed)                                        |
+| **Backend Testing**        | Pytest (144 tests passed across 26 files)                        |
 
 ---
 
@@ -264,29 +266,7 @@ cd frontend
 npm run test
 ```
 
-- ✅ **69/69 Passed (20 Test Files)**:
-  - `src/components/common/Button/Button.test.tsx` (5 tests)
-  - `src/components/common/Modal/Modal.test.tsx` (4 tests)
-  - `src/components/common/Card/Card.test.tsx` (1 test)
-  - `src/components/common/Heading/Heading.test.tsx` (1 test)
-  - `src/components/common/DataTable/DataTable.test.tsx` (5 tests)
-  - `src/components/layout/Sidebar.test.tsx` (3 tests)
-  - `src/components/modals/WorkspaceModal.test.tsx` (4 tests)
-  - `src/components/modals/SummaryBookletModal.test.tsx` (4 tests)
-  - `src/components/features/analytics/AiUsageTable.test.tsx` (3 tests)
-  - `src/components/features/documents/Documentmanager.test.tsx` (3 tests)
-  - `src/components/features/summary/SummaryGenerator.test.tsx` (1 test)
-  - `src/components/features/summary/SummaryLibraryTable.test.tsx` (3 tests)
-  - `src/components/features/chat/ChatInterface.test.tsx` (2 tests)
-  - `src/modules/Auth/LoginForm.test.tsx` (5 tests)
-  - `src/redux/slices/authSlice.test.ts` (5 tests)
-  - `src/redux/slices/workspaceSlice.test.ts` (4 tests)
-  - `src/redux/slices/uiSlice.test.ts` (4 tests)
-  - `src/utils/summaryStorage.test.ts` (5 tests)
-  - `src/utils/usageTracker.test.ts` (5 tests)
-  - `src/hooks/useAxios.test.ts` (2 tests)
-  - `src/hooks/useWorkspacesQuery.test.ts` (1 test)
-  - `src/test/integration/mswIntegration.test.tsx` (2 tests)
+- ✅ **72/72 Passed (22 Test Files)**
 
 ### 🎭 Frontend Playwright E2E Tests
 
@@ -295,44 +275,21 @@ cd frontend
 npx playwright test
 ```
 
-- ✅ **2/2 Passed**: Validates Authentication & Workspace Document management user flows in Chromium browser.
+- ✅ **5/5 Spec Files Passed**: Validates Auth, Workspace Documents, AI Chat, Summary Generator, and Analytics Table.
 
-### 📦 Frontend Production Build
-
-```bash
-cd frontend
-npm run build
-```
-
-- ✅ **200 modules transformed cleanly** with **0 errors**.
-
-### 🐍 Backend Pytest Suite
+### 🐍 Backend Pytest Suite & Retrieval Benchmark
 
 ```bash
 cd backend
-PYTHONPATH=. .venv/bin/pytest tests/
+
+# Run all 144 unit & integration tests
+PYTHONPATH=. .venv/bin/pytest tests/ -v
+
+# Run golden dataset retrieval evaluation benchmark (Hit Rate@k and MRR@k)
+PYTHONPATH=. .venv/bin/python scripts/eval_retrieval.py --workspace-id <YOUR_WORKSPACE_UUID>
 ```
 
-- ✅ **138/138 Passed**: Validates RAG chunking, embeddings, semantic retrieval, and conversation APIs.
-
----
-
-## 🛣️ Development Roadmap
-
-- [x] **Phase 1: JWT Authentication & Silent Token Refresh**
-- [x] **Phase 2: Workspace Multi-Tenant Management**
-- [x] **Phase 3: Document Upload Pipeline & Validation**
-- [x] **Phase 4: TanStack Smart Data Table (v8)**
-- [x] **Phase 5: Document Viewer & PDF REST Downloads**
-- [x] **Phase 6: RAG AI Chat & Citation Badges**
-- [x] **Phase 7: AI Summaries Library & Master Booklet Exporter**
-- [x] **Phase 8: AI Usage & Token Analytics Dashboard**
-- [x] **Phase 9: Settings & Redux UI State Management**
-- [x] **Phase 10: Reusable Core Design System Components**
-- [x] **Phase 11: Custom React Hooks & Axios Adapter**
-- [x] **Phase 12: TanStack Query Data Fetching & Caching Hooks**
-- [x] **Phase 13: MSW Integration Network Handlers**
-- [x] **Phase 14: Playwright End-to-End Browser Automation**
+- ✅ **144/144 Passed**: Validates RAG chunking, embeddings, FAISS vector search, document upload auto-indexing pipeline, prompt inclusion, and exponential backoff retries.
 
 ---
 
