@@ -1,8 +1,15 @@
 /// <reference types="node" />
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: path.join(__dirname, 'e2e'),
+  testMatch: '**/e2e/*.spec.ts',
+  testIgnore: '**/src/**',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -21,6 +28,9 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testDir: path.join(__dirname, 'e2e'),
+      testMatch: '**/e2e/*.spec.ts',
+      testIgnore: '**/src/**',
       use: { ...devices['Desktop Chrome'] },
     },
   ],
