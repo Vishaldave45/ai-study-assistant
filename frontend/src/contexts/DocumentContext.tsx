@@ -1,8 +1,8 @@
-import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { createContext, useState, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
-import { documentApi } from '../api/document.ts';
 import { useWorkspace } from '../hooks/useWorkspace.ts';
+import { useServerDocumentsQuery } from '../hooks/useServerDocumentsQuery';
 import type { DocumentItem } from '../types/document.ts';
 
 interface DocumentContextType {
@@ -22,16 +22,24 @@ export const DocumentContext = createContext<DocumentContextType | undefined>(un
 
 export function DocumentProvider({ children }: { children: ReactNode }) {
   const { activeWorkspace } = useWorkspace();
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Pagination states
-  const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const [customError, setCustomError] = useState<string | null>(null);
 
-  const clearError = useCallback(() => setError(null), []);
+  const {
+    data: docData,
+    isLoading,
+    error: queryError,
+    uploadDocument: uploadMutation,
+    deleteDocument: deleteMutation,
+  } = useServerDocumentsQuery({
+    workspaceId: activeWorkspace?.id || null,
+    page: currentPage,
+    pageSize: 10,
+    query: searchQuery,
+  });
+
+  const clearError = useCallback(() => setCustomError(null), []);
 
   const getErrorMessage = (err: unknown, defaultMsg: string): string => {
     if (axios.isAxiosError(err)) {
@@ -47,121 +55,61 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     return defaultMsg;
   };
 
+  const fetchDocuments = useCallback(async (page: number = 1, query?: string) => {
+    setCurrentPage(page);
+    setSearchQuery(query);
+  }, []);
 
-  const fetchDocuments = useCallback(
-    async (page: number = 1, query?: string) => {
-      if (!activeWorkspace) {
-        setDocuments([]);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await documentApi.list(activeWorkspace.id, {
-          page,
-          page_size: 10,
-          query,
-        });
-        setDocuments(res.items);
-        setTotalCount(res.total);
-        setCurrentPage(res.page);
-        setTotalPages(res.total_pages);
-      } catch (err) {
-        setError(getErrorMessage(err, 'Failed to fetch documents.'));
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [activeWorkspace]
-  );
-
-  /**
-   * Upload -active workspace
-   */
   const uploadDocument = useCallback(
     async (file: File): Promise<DocumentItem> => {
-      if (!activeWorkspace) {
-        const errMsg = 'Cannot upload document: No active workspace selected.';
-        setError(errMsg);
-        throw new Error(errMsg);
-      }
-
-      setIsLoading(true);
-      setError(null);
+      setCustomError(null);
       try {
-        const newDoc = await documentApi.upload(activeWorkspace.id, file);
-        // Refresh list
-        await fetchDocuments(1);
+        const newDoc = await uploadMutation(file);
+        setCurrentPage(1);
         return newDoc;
       } catch (err) {
-        const errMsg = getErrorMessage(err, 'Failed to upload document.');
-        setError(errMsg);
+        const msg = getErrorMessage(err, 'Failed to upload document.');
+        setCustomError(msg);
         throw err;
-      } finally {
-        setIsLoading(false);
       }
     },
-    [activeWorkspace, fetchDocuments]
+    [uploadMutation]
   );
 
-  /**
-   * Delete 
-   */
   const deleteDocument = useCallback(
     async (id: string) => {
-      setIsLoading(true);
-      setError(null);
+      setCustomError(null);
       try {
-        await documentApi.delete(id);
-        // Refresh list on current page 
-        const targetPage = documents.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
-        await fetchDocuments(targetPage);
+        await deleteMutation(id);
       } catch (err) {
-        const errMsg = getErrorMessage(err, 'Failed to delete document.');
-        setError(errMsg);
+        const msg = getErrorMessage(err, 'Failed to delete document.');
+        setCustomError(msg);
         throw err;
-      } finally {
-        setIsLoading(false);
       }
     },
-    [documents.length, currentPage, fetchDocuments]
+    [deleteMutation]
   );
 
-  // Sync documents list when the selected workspace changes
-  useEffect(() => {
-    if (!activeWorkspace) {
-      setDocuments([]);
-      setTotalCount(0);
-      setCurrentPage(1);
-      setTotalPages(1);
-      setError(null);
-      return;
-    }
-
-    fetchDocuments(1);
-  }, [activeWorkspace, fetchDocuments]);
+  const combinedError = customError || (queryError ? getErrorMessage(queryError, 'Failed to fetch documents.') : null);
 
   const contextValue = useMemo(
     () => ({
-      documents,
+      documents: docData?.items || [],
       isLoading,
-      error,
-      totalCount,
-      currentPage,
-      totalPages,
+      error: combinedError,
+      totalCount: docData?.total || 0,
+      currentPage: docData?.page || currentPage,
+      totalPages: docData?.total_pages || 1,
       fetchDocuments,
       uploadDocument,
       deleteDocument,
       clearError,
     }),
     [
-      documents,
+      docData,
       isLoading,
-      error,
-      totalCount,
+      combinedError,
       currentPage,
-      totalPages,
       fetchDocuments,
       uploadDocument,
       deleteDocument,
@@ -175,4 +123,5 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
     </DocumentContext.Provider>
   );
 }
+
 export default DocumentContext;

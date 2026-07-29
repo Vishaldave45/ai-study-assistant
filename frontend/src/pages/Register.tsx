@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { InputField, PasswordField } from '../components/FormField';
+import { InputField, PasswordField } from '../components';
 import { registerSchema } from '../modules/Auth/validation-schema/register.schema';
 import type { RegisterFormData } from '../modules/Auth/validation-schema/register.schema';
 

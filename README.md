@@ -13,7 +13,7 @@ Upload study materials, organize them into workspaces, inspect documents with sm
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![TanStack](https://img.shields.io/badge/TanStack-Table%20%26%20Query-FF4154?logo=reactquery&logoColor=white)](https://tanstack.com/)
 [![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
-[![Vitest](https://img.shields.io/badge/Vitest-7%2F7%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-27%2F27%20Passed-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 [![Pytest](https://img.shields.io/badge/Pytest-138%2F138%20Passed-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -79,7 +79,7 @@ The frontend is built with a modular domain-driven React architecture (`src/modu
 
 - **Multi-session RAG Chat Conversations** with history persistence.
 - **Paginated Message History**: Powered by TanStack Query (`useChatInfiniteQuery`) with top-scroll auto-loading.
-- **Interactive Prompt Chips**: One-click study actions (e.g. *Summarize Key Concepts*, *Practice Exam Questions*, *Extract Terminology*).
+- **Interactive Prompt Chips**: One-click study actions (e.g. _Summarize Key Concepts_, _Practice Exam Questions_, _Extract Terminology_).
 - **Page Citations**: Grounded answer references with exact page numbers.
 
 </details>
@@ -196,18 +196,18 @@ ai-study-assistant/
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-|---|---|
-| **Frontend Core** | React 19, TypeScript 5.6, Vite 8 |
-| **State Management** | Redux Toolkit (`@reduxjs/toolkit`), React Context API |
-| **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8) |
-| **Forms & Validation** | `react-hook-form`, `@hookform/resolvers`, `yup` |
-| **Networking** | Axios (`base-axios` with JWT interceptors & token refresh) |
-| **Frontend Testing** | Vitest (7 tests passed), Playwright E2E |
-| **Backend Framework** | Python 3.12, FastAPI, Pydantic v2 |
-| **ORM & Database** | SQLAlchemy, Alembic, SQLite / PostgreSQL |
-| **Vector Search & LLM** | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
-| **Backend Testing** | Pytest (138 tests passed) |
+| Category                   | Technologies                                                     |
+| -------------------------- | ---------------------------------------------------------------- |
+| **Frontend Core**          | React 19, TypeScript 5.6, Vite 8                                 |
+| **State Management**       | Redux Toolkit (`@reduxjs/toolkit`), React Context API            |
+| **Data Fetching & Tables** | `@tanstack/react-query` (v5), `@tanstack/react-table` (v8)       |
+| **Forms & Validation**     | `react-hook-form`, `@hookform/resolvers`, `yup`                  |
+| **Networking**             | Axios (`base-axios` with JWT interceptors & token refresh)       |
+| **Frontend Testing**       | Vitest (27 tests passed across 8 suites), Playwright E2E         |
+| **Backend Framework**      | Python 3.12, FastAPI, Pydantic v2                                |
+| **ORM & Database**         | SQLAlchemy, Alembic, SQLite / PostgreSQL                         |
+| **Vector Search & LLM**    | FAISS, Google Gemini (`gemini-2.5-flash`), Sentence Transformers |
+| **Backend Testing**        | Pytest (138 tests passed)                                        |
 
 ---
 
@@ -232,6 +232,7 @@ alembic upgrade head
 # Start FastAPI backend server
 uvicorn app.main:app --reload
 ```
+
 > [!NOTE]
 > Backend server runs at `http://localhost:8000`. Interactive Swagger Docs: `http://localhost:8000/docs`.
 
@@ -248,6 +249,7 @@ npm install --legacy-peer-deps
 # Start Vite development server
 npm run dev
 ```
+
 > [!NOTE]
 > Frontend web app runs at `http://localhost:5173`.
 
@@ -256,31 +258,47 @@ npm run dev
 ## 🧪 Testing Suite
 
 ### ⚡ Frontend Vitest Unit Tests
+
 ```bash
 cd frontend
 npm test
 ```
-- ✅ **7/7 Passed**: Validates Login Yup schema, TanStack DataTable filtering, and `useAxios` response wrappers.
+
+- ✅ **27/27 Passed (8 Test Suites)**:
+  - `src/hooks/useAxios.test.ts` (2 tests)
+  - `src/components/Card.test.tsx` (1 test)
+  - `src/components/Sidebar.test.tsx` (3 tests)
+  - `src/components/Documentmanager.test.tsx` (3 tests)
+  - `src/components/WorkspaceModal.test.tsx` (4 tests)
+  - `src/components/SummaryBookletModal.test.tsx` (4 tests)
+  - `src/components/DataTable/DataTable.test.tsx` (5 tests)
+  - `src/modules/Auth/LoginForm.test.tsx` (5 tests)
 
 ### 🎭 Frontend Playwright E2E Tests
+
 ```bash
 cd frontend
 npm run test:e2e
 ```
+
 - ✅ Validates Authentication & Workspace Document management user flows.
 
 ### 📦 Frontend Production Build
+
 ```bash
 cd frontend
 npm run build
 ```
+
 - ✅ **190 modules transformed cleanly** with **0 errors and 0 warnings**.
 
 ### 🐍 Backend Pytest Suite
+
 ```bash
 cd backend
 PYTHONPATH=. .venv/bin/pytest tests/
 ```
+
 - ✅ **138/138 Passed**: Validates RAG chunking, embeddings, semantic retrieval, and conversation APIs.
 
 ---

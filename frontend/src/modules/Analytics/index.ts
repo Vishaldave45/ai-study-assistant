@@ -1,1 +1,1 @@
-export { AiUsageTable } from '../../components/AiUsageTable';
+export { AiUsageTable } from '../../components';
