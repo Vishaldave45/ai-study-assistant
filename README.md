@@ -87,19 +87,19 @@ The platform parses layout-rich PDF documents, extracts embedded visual diagrams
 
 ## 🧠 Document Intelligence Engine v2
 
-The core backend features a 9-phase document intelligence engine (`backend/app/engine/`):
+The core backend features a comprehensive document intelligence engine (`backend/app/engine/`):
 
-| Phase | Module Name | Architectural Responsibility |
+| Component | Module Name | Architectural Responsibility |
 | :--- | :--- | :--- |
-| **Phase 1** | **Extensible Ingestion Engine** | Strategy Pattern (`BaseDocumentProcessor`) & Factory resolution for multi-format document extraction. |
-| **Phase 2** | **Multimodal Vision AI** | Gemini Vision AI service extracting visual diagrams (JSON), tables (Markdown), and LaTeX equations. |
-| **Phase 3** | **Unified Knowledge Representation** | `MarkdownBuilder` compiling raw text blocks and multimodal extractions into structured Markdown. |
-| **Phase 4** | **Smart Structure-Aware Chunking** | `SmartSemanticChunker` creating typed chunks (`heading`, `paragraph`, `diagram`, `table`, `equation`). |
-| **Phase 5** | **Multi-Retriever Hybrid Pipeline** | Query Planner + multi-channel parallel fan-out + Reciprocal Rank Fusion (RRF) scoring ($1 / (k + \text{rank})$). |
-| **Phase 6** | **Frontend Multimodal Panel** | React component (`DocumentAIPanel`) displaying tabbed diagrams, tables, and LaTeX equations. |
-| **Phase 7** | **Multimodal AI Study Features** | `DiagramFeatureService` generating quizzes, flashcards, and explanations from visual diagrams. |
-| **Phase 8** | **Knowledge Graph Engine** | Entity triplet extraction (`source`, `relation`, `target`) and directional graph traversal. |
-| **Phase 9** | **Async Ingest Worker** | Background worker with async event loop offloading & milestone progress callbacks (10% ➔ 100%). |
+| **Ingestion Strategy** | **Extensible Ingestion Engine** | Strategy Pattern (`BaseDocumentProcessor`) & Factory resolution for multi-format document extraction. |
+| **Vision AI** | **Multimodal Vision AI** | Gemini Vision AI service extracting visual diagrams (JSON), tables (Markdown), and LaTeX equations. |
+| **Knowledge Builder** | **Unified Knowledge Representation** | `MarkdownBuilder` compiling raw text blocks and multimodal extractions into structured Markdown. |
+| **Smart Chunker** | **Smart Structure-Aware Chunking** | `SmartSemanticChunker` creating typed chunks (`heading`, `paragraph`, `diagram`, `table`, `equation`). |
+| **Hybrid RAG** | **Multi-Retriever Hybrid Pipeline** | Query Planner + multi-channel parallel fan-out + Reciprocal Rank Fusion (RRF) scoring ($1 / (k + \text{rank})$). |
+| **Multimodal UI** | **Frontend Multimodal Panel** | React component (`DocumentAIPanel`) displaying tabbed diagrams, tables, and LaTeX equations. |
+| **AI Study Features** | **Multimodal AI Study Features** | `DiagramFeatureService` generating quizzes, flashcards, and explanations from visual diagrams. |
+| **Knowledge Graph** | **Knowledge Graph Engine** | Entity triplet extraction (`source`, `relation`, `target`) and directional graph traversal. |
+| **Background Worker** | **Async Ingest Worker** | Background worker with async event loop offloading & milestone progress callbacks (10% ➔ 100%). |
 
 ---
 
