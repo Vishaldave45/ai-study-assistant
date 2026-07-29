@@ -10,7 +10,7 @@ class TestPrompts(unittest.TestCase):
 
     def setUp(self):
         # Instantiate a builder with custom small limits for easy testing of trimming
-        self.builder_small = PromptBuilder(max_tokens=500, max_chunks=3)
+        self.builder_small = PromptBuilder(max_tokens=350, max_chunks=3)
         self.builder_normal = PromptBuilder()
 
     def test_context_formatter(self):
@@ -56,9 +56,9 @@ class TestPrompts(unittest.TestCase):
         self.assertIn("Explain AI.", prompt)
 
     def test_context_trimming(self):
-        # Create chunks that are large enough to exceed our small budget (500 tokens)
+        # Create chunks that are large enough to exceed our small budget (350 tokens)
         large_chunk_content = (
-            "This is a sentence that we will repeat to make it very large. " * 30
+            "This is a sentence that we will repeat to make it very large. " * 12
         )
         chunks = [
             {"content": large_chunk_content, "filename": "large_doc.pdf", "page": "1"},
@@ -69,7 +69,7 @@ class TestPrompts(unittest.TestCase):
             },
         ]
 
-        # TokenBudgetManager will accept the first chunk but reject the second because it overflows 500 tokens
+        # TokenBudgetManager will accept the first chunk but reject the second because it overflows 350 tokens
         prompt = self.builder_small.build("Explain AI.", chunks)
 
         self.assertIn("large_doc.pdf", prompt)
@@ -77,7 +77,7 @@ class TestPrompts(unittest.TestCase):
 
     def test_query_too_large_error(self):
         # A query that is excessively large and immediately exceeds the budget
-        huge_query = "What is " + ("AI " * 500)
+        huge_query = "What is " + ("AI " * 350)
         chunks = [{"content": "Some content", "filename": "doc1.pdf", "page": "1"}]
 
         with self.assertRaises(PromptTooLargeError):
