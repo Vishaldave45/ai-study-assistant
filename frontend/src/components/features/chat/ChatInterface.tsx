@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import type { KeyboardEvent, UIEvent } from 'react';
-import { useChat } from '../hooks/useChat';
-import { useChatInfiniteQuery } from '../hooks/useChatInfiniteQuery';
+import { useChat } from '../../../hooks/useChat';
+import { useChatInfiniteQuery } from '../../../hooks/useChatInfiniteQuery';
 
 export const ChatInterface = memo(function ChatInterface() {
   const {

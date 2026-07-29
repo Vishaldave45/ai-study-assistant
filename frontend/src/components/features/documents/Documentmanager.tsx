@@ -1,9 +1,9 @@
 import { useReducer, useMemo, memo } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useDocument } from '../hooks/useDocument';
-import { DataTable } from './DataTable/DataTable';
-import type { DocumentItem } from '../types/document.ts';
+import { useDocument } from '../../../hooks/useDocument';
+import { DataTable } from '../../common/DataTable/DataTable';
+import type { DocumentItem } from '../../../types/document';
 
 // Helper to format file sizes nicely
 function formatBytes(bytes: number, decimals = 2): string {

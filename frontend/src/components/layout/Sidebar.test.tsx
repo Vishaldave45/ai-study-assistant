@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, userEvent } from '../test/test-utils';
+import { render, screen, userEvent } from '../../test/test-utils';
 import { Sidebar } from './Sidebar';
 
 describe('Sidebar Component', () => {

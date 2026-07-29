@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useWorkspace } from '../hooks/useWorkspace.ts';
-import { workspaceSchema } from '../modules/Workspace/validation-schema/workspace.schema';
-import type { WorkspaceFormData } from '../modules/Workspace/validation-schema/workspace.schema';
-import type { WorkspaceSummary } from '../types/workspace.ts';
+import { useWorkspace } from '../../hooks/useWorkspace';
+import { workspaceSchema } from '../../modules/Workspace/validation-schema/workspace.schema';
+import type { WorkspaceFormData } from '../../modules/Workspace/validation-schema/workspace.schema';
+import type { WorkspaceSummary } from '../../types/workspace';
 
 interface WorkspaceModalProps {
   type: 'create' | 'edit' | 'delete';

@@ -6,7 +6,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import { DocumentProvider } from '../contexts/DocumentContext';
 import { ChatProvider } from '../contexts/ChatContext';
-import ErrorBoundary from '../components/feedback/ErrorBoundary';
+import { ErrorBoundary } from '../components';
 
 const queryClient = new QueryClient({
   defaultOptions: {
